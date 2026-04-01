@@ -15,8 +15,8 @@ for col in ['AC Used','LED Used','Renewable','Implemented Tips?']:
     data[col] = data[col].str.title()
 
 # ---------- Currency Conversion ----------
-conversion_rate_hkd = 0.096  # 1 INR ≈ 0.096 HKD
-conversion_rate_usd = 0.012  # 1 INR ≈ 0.012 USD
+conversion_rate_hkd = 0.096  # 1 INR ≈ 0.084 HKD
+conversion_rate_usd = 0.012  # 1 INR ≈ 0.011 USD
 data['Cost (HKD)'] = data['Cost (₹)'] * conversion_rate_hkd
 data['Cost (USD)'] = data['Cost (₹)'] * conversion_rate_usd
 
