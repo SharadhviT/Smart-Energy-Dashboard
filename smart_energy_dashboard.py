@@ -5,8 +5,7 @@ import seaborn as sns
 from sklearn.linear_model import LinearRegression
 from sklearn.preprocessing import LabelEncoder
 import os
-# ---------- Load Data ----------
-data = pd.read_csv("energy_data_100.csv")
+
 
 plt.style.use('ggplot')
 
