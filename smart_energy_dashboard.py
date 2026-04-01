@@ -192,25 +192,27 @@ for r in recs:
 st.subheader("🔮 What-If Scenario")
 
 all_led = display_data.copy()
-all_led['LED Used'] = 'Yes'
+
+# Assume LED reduces energy by 15%
+reduction_factor = 0.15
+
+# Apply reduction ONLY to non-LED households
+mask = all_led['LED Used'] == 'No'
+all_led.loc[mask, 'Daily Energy (kWh)'] *= (1 - reduction_factor)
+
+# Recalculate cost
+all_led['Cost (₹)'] = all_led['Daily Energy (kWh)'] * 9
+all_led['Cost (HKD)'] = all_led['Cost (₹)'] * conversion_rate_hkd
+all_led['Cost (USD)'] = all_led['Cost (₹)'] * conversion_rate_usd
+
+# Compute new average
 new_cost = safe_mean(all_led[cost_col], avg_cost)
 
 total_savings = (avg_cost - new_cost) * len(display_data)
 
-st.write(f"If all use LED → Save {currency_symbol} {total_savings:.2f}/day")
-
-# ---------- Personalized ----------
-st.subheader("🎯 Household Insights")
-
-for _, row in display_data.head(5).iterrows():
-    msg = f"House {row['Household ID']}: "
-    if row['LED Used'] == 'No':
-        msg += "Use LED. "
-    if row['AC Used'] == 'Yes':
-        msg += "Reduce AC. "
-    if row['Renewable'] == 'No':
-        msg += "Go solar. "
-    st.write(msg)
+st.write(f"💡 If ALL households used LED (15% efficiency gain):")
+st.write(f"- New Avg Cost: {currency_symbol} {new_cost:.2f}")
+st.write(f"- Total Daily Savings: {currency_symbol} {total_savings:.2f}")
 
 # ---------- Download ----------
 @st.cache_data
