@@ -20,6 +20,18 @@ conversion_rate_usd = 0.012  # 1 INR ≈ 0.012 USD
 data['Cost (HKD)'] = data['Cost (₹)'] * conversion_rate_hkd
 data['Cost (USD)'] = data['Cost (₹)'] * conversion_rate_usd
 
+# ---------- Currency Toggle ----------
+currency = st.sidebar.radio("💱 Select Currency", options=["INR", "HKD", "USD"])
+if currency == "INR":
+    cost_col = "Cost (₹)"
+    currency_symbol = "₹"
+elif currency == "HKD":
+    cost_col = "Cost (HKD)"
+    currency_symbol = "HKD"
+else:
+    cost_col = "Cost (USD)"
+    currency_symbol = "$"
+
 # ---------- Sidebar Filters ----------
 st.sidebar.header("🔎 Filter Households")
 household_types = st.sidebar.multiselect("Household Type", options=data['Household Type'].unique(), default=data['Household Type'].unique())
@@ -66,18 +78,6 @@ if not data.empty:
         st.sidebar.success(f"Household {del_id} deleted!")
 else:
     st.sidebar.info("No households available to delete.")
-
-# ---------- Currency Toggle ----------
-currency = st.sidebar.radio("💱 Select Currency", options=["INR", "HKD", "USD"])
-if currency == "INR":
-    cost_col = "Cost (₹)"
-    currency_symbol = "₹"
-elif currency == "HKD":
-    cost_col = "Cost (HKD)"
-    currency_symbol = "HKD"
-else:
-    cost_col = "Cost (USD)"
-    currency_symbol = "$"
 
 # ---------- Apply Filters ----------
 filtered_data = data[
