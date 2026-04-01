@@ -189,14 +189,18 @@ for r in recs:
     st.write(r)
 
 # ---------- What-if ----------
+# ---------- What-if ----------
 st.subheader("🔮 What-If Scenario")
 
 all_led = display_data.copy()
 
-# Assume LED reduces energy by 15%
-reduction_factor = 0.15
+# ✅ Convert to float FIRST (fixes error)
+all_led['Daily Energy (kWh)'] = all_led['Daily Energy (kWh)'].astype(float)
 
-# Apply reduction ONLY to non-LED households
+# Adjustable slider (optional but powerful)
+reduction_factor = st.slider("LED Efficiency Improvement (%)", 5, 30, 15) / 100
+
+# Apply reduction
 mask = all_led['LED Used'] == 'No'
 all_led.loc[mask, 'Daily Energy (kWh)'] *= (1 - reduction_factor)
 
@@ -205,12 +209,12 @@ all_led['Cost (₹)'] = all_led['Daily Energy (kWh)'] * 9
 all_led['Cost (HKD)'] = all_led['Cost (₹)'] * conversion_rate_hkd
 all_led['Cost (USD)'] = all_led['Cost (₹)'] * conversion_rate_usd
 
-# Compute new average
+# New average
 new_cost = safe_mean(all_led[cost_col], avg_cost)
 
 total_savings = (avg_cost - new_cost) * len(display_data)
 
-st.write(f"💡 If ALL households used LED (15% efficiency gain):")
+st.write(f"💡 If ALL households used LED ({int(reduction_factor*100)}% efficiency gain):")
 st.write(f"- New Avg Cost: {currency_symbol} {new_cost:.2f}")
 st.write(f"- Total Daily Savings: {currency_symbol} {total_savings:.2f}")
 
