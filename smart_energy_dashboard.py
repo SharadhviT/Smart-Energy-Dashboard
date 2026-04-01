@@ -10,232 +10,149 @@ st.set_page_config(layout="wide", page_title="Smart Energy Dashboard")
 st.title("💡 Smart Energy Awareness & Optimization Dashboard")
 
 st.markdown("""
-This dashboard provides insights into energy consumption across 100 households.  
-It utilizes **statistical modeling and regression analysis** to identify inefficiencies—a direct application of the analytical skills that earned me 100/100 in Statistics.
+This dashboard analyzes energy consumption across households using **statistical modeling and regression analysis**.
 """)
 
 # ---------- Load Data ----------
 data = pd.read_csv("energy_data_100.csv")
 
-# ---------- Standardize categorical columns ----------
+# ---------- Clean Data ----------
 for col in ['AC Used','LED Used','Renewable','Implemented Tips?']:
     data[col] = data[col].str.title()
 
 # ---------- Currency Conversion ----------
-conversion_rate_hkd = 0.096  # 1 INR ≈ 0.096 HKD
-conversion_rate_usd = 0.012  # 1 INR ≈ 0.012 USD
+conversion_rate_hkd = 0.096
+conversion_rate_usd = 0.012
 data['Cost (HKD)'] = data['Cost (₹)'] * conversion_rate_hkd
 data['Cost (USD)'] = data['Cost (₹)'] * conversion_rate_usd
 
 # ---------- Currency Toggle ----------
-currency = st.sidebar.radio("💱 Select Currency", options=["INR", "HKD", "USD"])
-if currency == "INR":
-    cost_col = "Cost (₹)"
-    currency_symbol = "₹"
-elif currency == "HKD":
-    cost_col = "Cost (HKD)"
-    currency_symbol = "HKD"
-else:
-    cost_col = "Cost (USD)"
-    currency_symbol = "$"
+currency = st.sidebar.radio("💱 Select Currency", ["INR", "HKD", "USD"])
+cost_col = {
+    "INR": "Cost (₹)",
+    "HKD": "Cost (HKD)",
+    "USD": "Cost (USD)"
+}[currency]
 
-# ---------- Sidebar Filters ----------
-st.sidebar.header("🔎 Filter Households")
-household_types = st.sidebar.multiselect("Household Type", options=data['Household Type'].unique(), default=data['Household Type'].unique())
-ac_filter = st.sidebar.multiselect("AC Used", options=['Yes','No'], default=['Yes','No'])
-led_filter = st.sidebar.multiselect("LED Used", options=['Yes','No'], default=['Yes','No'])
-renewable_filter = st.sidebar.multiselect("Renewable", options=['Yes','No'], default=['Yes','No'])
-tips_filter = st.sidebar.multiselect("Implemented Tips?", options=['Yes','No'], default=['Yes','No'])
+currency_symbol = {
+    "INR": "₹",
+    "HKD": "HKD",
+    "USD": "$"
+}[currency]
 
-# ---------- Add New Household ----------
-st.sidebar.header("➕ Add New Household")
-with st.sidebar.form("add_household"):
-    hh_type = st.selectbox("Household Type", ["Apartment", "Villa", "Independent House"])
-    occupants = st.number_input("Occupants", min_value=1, max_value=10, value=3)
-    daily_energy = st.number_input("Daily Energy (kWh)", min_value=1, max_value=200, value=30)
-    ac = st.selectbox("AC Used", ["Yes", "No"])
-    led = st.selectbox("LED Used", ["Yes", "No"])
-    renewable = st.selectbox("Renewable", ["Yes", "No"])
-    tips = st.selectbox("Implemented Tips?", ["Yes", "No"])
-    submitted = st.form_submit_button("Add Household")
-    if submitted:
-        new_id = data["Household ID"].max() + 1
-        new_row = {
-            "Household ID": new_id,
-            "Household Type": hh_type,
-            "Occupants": occupants,
-            "Daily Energy (kWh)": daily_energy,
-            "Cost (₹)": daily_energy * 9,
-            "AC Used": ac,
-            "LED Used": led,
-            "Renewable": renewable,
-            "Implemented Tips?": tips,
-            "Cost (HKD)": daily_energy * 9 * conversion_rate_hkd,
-            "Cost (USD)": daily_energy * 9 * conversion_rate_usd
-        }
-        data = pd.concat([data, pd.DataFrame([new_row])], ignore_index=True)
-        st.sidebar.success(f"✅ Household {new_id} added!")
+# ---------- Filters ----------
+st.sidebar.header("🔎 Filters")
+filtered_data = data.copy()
 
-# ---------- Delete Household ----------
-st.sidebar.header("🗑️ Delete Household")
-if not data.empty:
-    del_id = st.sidebar.selectbox("Select Household ID to Delete", options=data['Household ID'].tolist())
-    if st.sidebar.button("Delete Household"):
-        data = data[data['Household ID'] != del_id]
-        st.sidebar.success(f"✅ Household {del_id} deleted!")
-else:
-    st.sidebar.info("No households available to delete.")
-
-# ---------- Apply Filters ----------
-filtered_data = data[
-    (data['Household Type'].isin(household_types)) &
-    (data['AC Used'].isin(ac_filter)) &
-    (data['LED Used'].isin(led_filter)) &
-    (data['Renewable'].isin(renewable_filter)) &
-    (data['Implemented Tips?'].isin(tips_filter))
-]
-
-# ---------- Safe mean function ----------
-def safe_mean(series, fallback=None):
+# ---------- Safe Mean ----------
+def safe_mean(series, fallback):
     return fallback if series.empty else series.mean()
 
 # ---------- Metrics ----------
-avg_energy = safe_mean(filtered_data['Daily Energy (kWh)'], fallback=data['Daily Energy (kWh)'].mean())
-avg_cost = safe_mean(filtered_data[cost_col], fallback=safe_mean(data[cost_col]))
-tips_percent = safe_mean((filtered_data['Implemented Tips?']=='Yes')*100, fallback=(data['Implemented Tips?']=='Yes').mean()*100)
-renewable_percent = safe_mean((filtered_data['Renewable']=='Yes')*100, fallback=(data['Renewable']=='Yes').mean()*100)
+avg_energy = safe_mean(filtered_data['Daily Energy (kWh)'], data['Daily Energy (kWh)'].mean())
+avg_cost = safe_mean(filtered_data[cost_col], data[cost_col].mean())
+tips_percent = (filtered_data['Implemented Tips?'] == 'Yes').mean() * 100
+renewable_percent = (filtered_data['Renewable'] == 'Yes').mean() * 100
 
 st.subheader("📊 Key Metrics")
 col1, col2, col3, col4 = st.columns(4)
 col1.metric("Avg Energy (kWh)", f"{avg_energy:.2f}")
 col2.metric(f"Avg Cost ({currency_symbol})", f"{avg_cost:.2f}")
-col3.metric("% Implemented Tips", f"{tips_percent:.1f}%")
-col4.metric("% Using Renewable", f"{renewable_percent:.1f}%")
-
-# ---------- Display filtered data ----------
-st.subheader("🏠 Household Energy Data")
-display_data = filtered_data if not filtered_data.empty else data
-if filtered_data.empty:
-    st.info("⚠️ No households match your filter. Showing overall dataset as fallback.")
-st.dataframe(display_data)
+col3.metric("% Tips Used", f"{tips_percent:.1f}%")
+col4.metric("% Renewable", f"{renewable_percent:.1f}%")
 
 # ---------- Charts ----------
-st.subheader("📈 Daily Energy Usage (kWh)")
-st.line_chart(display_data['Daily Energy (kWh)'])
+st.subheader("📈 Energy Trend")
+st.line_chart(filtered_data['Daily Energy (kWh)'])
 
-st.subheader(f"💰 Daily Cost per Household ({currency_symbol})")
-st.bar_chart(display_data.set_index('Household ID')[cost_col])
+st.subheader("💰 Cost per Household")
+st.bar_chart(filtered_data.set_index('Household ID')[cost_col])
 
-st.subheader("✅ Households Implementing Energy-Saving Tips")
-fig1, ax1 = plt.subplots(figsize=(4,4))
-ax1.pie(display_data['Implemented Tips?'].value_counts(), labels=['Yes','No'], autopct='%1.1f%%', colors=['#66b3ff','#ff9999'])
-st.pyplot(fig1)
+# ---------- Analysis ----------
+display_data = filtered_data.copy()
 
-st.subheader("🌞 Renewable Energy Adoption")
-fig2, ax2 = plt.subplots(figsize=(4,4))
-ax2.pie(display_data['Renewable'].value_counts(), labels=['Yes','No'], autopct='%1.1f%%', colors=['#99ff99','#ffcc99'])
-st.pyplot(fig2)
+avg_cost_led = safe_mean(display_data[display_data['LED Used']=='Yes'][cost_col], avg_cost)
+avg_cost_non_led = safe_mean(display_data[display_data['LED Used']=='No'][cost_col], avg_cost)
 
-st.subheader("❄️ AC Usage vs Daily Energy")
-fig3, ax3 = plt.subplots(figsize=(8,4))
-sns.boxplot(x='AC Used', y='Daily Energy (kWh)', data=display_data, ax=ax3)
-st.pyplot(fig3)
+avg_ac = safe_mean(display_data[display_data['AC Used']=='Yes']['Daily Energy (kWh)'], avg_energy)
+avg_no_ac = safe_mean(display_data[display_data['AC Used']=='No']['Daily Energy (kWh)'], avg_energy)
 
-st.subheader("👥 Energy vs Number of Occupants")
-fig4, ax4 = plt.subplots()
-sns.scatterplot(x='Occupants', y='Daily Energy (kWh)', hue='LED Used', data=display_data, palette="Set2", ax=ax4)
-st.pyplot(fig4)
+renewable_avg = safe_mean(display_data[display_data['Renewable']=='Yes']['Daily Energy (kWh)'], avg_energy)
+non_renewable_avg = safe_mean(display_data[display_data['Renewable']=='No']['Daily Energy (kWh)'], avg_energy)
 
-st.subheader("⚡ Energy Usage per Occupant")
-display_data['Energy per Occupant'] = display_data['Daily Energy (kWh)'] / display_data['Occupants']
-st.bar_chart(display_data.set_index('Household ID')['Energy per Occupant'])
+# ---------- ✅ FIXED RECOMMENDATIONS ----------
+st.subheader("📝 Data-Driven Recommendations")
 
-st.subheader("🏘️ Avg Energy Usage by Household Type")
-st.bar_chart(display_data.groupby('Household Type')['Daily Energy (kWh)'].mean())
+recommendations = []
 
-# ---------- LED vs Non-LED Cost ----------
-st.subheader("💡 LED vs Non-LED Cost Analysis")
-avg_cost_led = safe_mean(display_data[display_data['LED Used']=='Yes'][cost_col], fallback=avg_cost)
-avg_cost_non_led = safe_mean(display_data[display_data['LED Used']=='No'][cost_col], fallback=avg_cost)
-st.write(f"- Avg cost with LED bulbs: {currency_symbol} {avg_cost_led:.2f}")
-st.write(f"- Avg cost without LED bulbs: {currency_symbol} {avg_cost_non_led:.2f}")
-st.write(f"- LED households save ~{currency_symbol} {avg_cost_non_led-avg_cost_led:.2f} per day")
+# LED
+if avg_cost_led < avg_cost_non_led:
+    savings = avg_cost_non_led - avg_cost_led
+    recommendations.append(f"💡 LED bulbs save ~{currency_symbol} {savings:.2f} per day per household.")
 
-# ---------- AC vs Non-AC Energy ----------
-st.subheader("❄️ AC vs Non-AC Energy Analysis")
-avg_ac = safe_mean(display_data[display_data['AC Used']=='Yes']['Daily Energy (kWh)'], fallback=avg_energy)
-avg_no_ac = safe_mean(display_data[display_data['AC Used']=='No']['Daily Energy (kWh)'], fallback=avg_energy)
-st.write(f"- Avg AC Household Energy: {avg_ac:.2f} kWh")
-st.write(f"- Avg Non-AC Household Energy: {avg_no_ac:.2f} kWh")
-st.write(f"- AC households consume {((avg_ac-avg_no_ac)/avg_no_ac*100):.1f}% more energy" if avg_no_ac != 0 else "-")
+# AC
+if avg_ac > avg_no_ac:
+    increase = ((avg_ac - avg_no_ac) / avg_no_ac * 100) if avg_no_ac != 0 else 0
+    recommendations.append(f"❄️ AC usage increases energy by ~{increase:.1f}% — optimize usage.")
 
-# ---------- Top 5 Energy Consumers ----------
-st.subheader("🏆 Top 5 Energy-Consuming Households")
-top5 = display_data.sort_values(by='Daily Energy (kWh)', ascending=False).head(5)
-st.table(top5[['Household ID','Daily Energy (kWh)',cost_col,'AC Used','LED Used']])
+# Renewable
+if renewable_avg < non_renewable_avg:
+    recommendations.append("🌞 Renewable energy users consume less energy — promote solar adoption.")
 
-# ---------- Renewable Impact ----------
-st.subheader("🌞 Renewable Energy Impact")
-renewable_avg = safe_mean(display_data[display_data['Renewable']=='Yes']['Daily Energy (kWh)'], fallback=avg_energy)
-non_renewable_avg = safe_mean(display_data[display_data['Renewable']=='No']['Daily Energy (kWh)'], fallback=avg_energy)
-st.write(f"- Avg energy with renewable: {renewable_avg:.2f} kWh")
-st.write(f"- Avg energy without renewable: {non_renewable_avg:.2f} kWh")
+# Awareness
+if tips_percent < 50:
+    recommendations.append("📉 Less than 50% households follow energy-saving tips — awareness needed.")
 
-# ---------- Statistical Modeling & Regression ----------
-st.subheader("📊 Regression Analysis: Predicting Daily Energy")
+# Strong threshold (advanced logic)
+if abs(avg_cost_non_led - avg_cost_led) < 1:
+    recommendations.append("⚖️ LED vs non-LED difference is minimal — investigate further data.")
+
+# Fallback
+if not recommendations:
+    recommendations.append("✅ Energy usage patterns are already efficient.")
+
+for rec in recommendations:
+    st.write(rec)
+
+# ---------- Regression ----------
+st.subheader("📊 Regression Analysis")
+
 reg_data = display_data.copy()
 for col in ['AC Used','LED Used','Renewable']:
     reg_data[col] = LabelEncoder().fit_transform(reg_data[col])
+
 X = reg_data[['Occupants','AC Used','LED Used','Renewable']]
 y = reg_data['Daily Energy (kWh)']
+
 model = LinearRegression().fit(X, y)
 
-coeffs = pd.DataFrame({'Feature': X.columns, 'Coefficient': model.coef_})
-st.write("#### Feature Impact on Energy Usage (Positive values increase energy consumption)")
-st.table(coeffs)
+coeffs = pd.DataFrame({
+    'Feature': X.columns,
+    'Impact': model.coef_
+})
 
-reg_data['Predicted Energy'] = model.predict(X)
-reg_data['Residual'] = reg_data['Daily Energy (kWh)'] - reg_data['Predicted Energy']
-st.write("#### Residual Analysis (Observed - Predicted Energy)")
-st.dataframe(reg_data[['Household ID','Daily Energy (kWh)','Predicted Energy','Residual']].head(10))
+st.write("### Feature Impact")
+st.dataframe(coeffs)
 
+# ---------- Correlation ----------
 st.subheader("🔍 Correlation Matrix")
-corr = reg_data[['Daily Energy (kWh)','Occupants','AC Used','LED Used','Renewable']]
-fig_corr, ax_corr = plt.subplots()
-sns.heatmap(corr.corr(), annot=True, cmap='coolwarm', ax=ax_corr)
-st.pyplot(fig_corr)
 
-# ---------- Recommendations ----------
-st.subheader("📝 Data-Driven Recommendations")
-if avg_cost_led > avg_cost_non_led:
-    st.write("- Encourage households to switch to LED bulbs to save cost.")
-if avg_ac > avg_no_ac:
-    st.write("- Reduce AC usage or optimize temperature settings to save energy.")
-if renewable_avg > non_renewable_avg:
-    st.write("- Promote renewable energy adoption for higher efficiency.")
+fig, ax = plt.subplots()
+sns.heatmap(reg_data.corr(), annot=True, cmap='coolwarm', ax=ax)
+st.pyplot(fig)
 
-# ---------- Top 5 Energy-Saving Tips ----------
-st.subheader("💡 Top 5 Energy-Saving Tips")
-st.write("""
-1. Turn off unused appliances.  
-2. Use LED bulbs instead of CFL/Incandescent.  
-3. Reduce AC usage or set optimal temperature.  
-4. Install solar panels if possible.  
-5. Optimize washing machine usage and laundry loads.
-""")
+# ---------- Download ----------
+st.subheader("💾 Download Data")
 
-# ---------- Download Filtered Data ----------
-st.subheader("💾 Download Filtered Data")
 @st.cache_data
-def convert_df(df):
+def convert(df):
     return df.to_csv(index=False).encode('utf-8')
 
-display_data_download = display_data.copy()
-display_data_download["Cost"] = display_data_download[cost_col]
-csv = convert_df(display_data_download)
+csv = convert(display_data)
+
 st.download_button(
-    label=f"Download Filtered Data ({currency}) as CSV",
-    data=csv,
-    file_name=f'filtered_energy_data_{currency}.csv',
-    mime='text/csv'
+    "Download CSV",
+    csv,
+    "energy_data.csv",
+    "text/csv"
 )
