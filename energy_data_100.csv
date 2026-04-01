@@ -1,101 +1,101 @@
-Household ID,Daily Energy (kWh),Cost (₹),Implemented Tips?,Occupants,Household Type,AC Used,LED Used,Washing Hours,Renewable
-1,12,180,Yes,3,Apartment,Yes,Yes,1,No
-2,8,120,No,2,Apartment,No,No,0.5,No
-3,15,225,Yes,4,Villa,Yes,Yes,2,Yes
-4,7,105,No,2,Apartment,No,No,1,No
-5,18,270,Yes,5,Independent House,Yes,Yes,2,Yes
-6,10,150,Yes,3,Apartment,Yes,Yes,1,No
-7,5,75,No,1,Apartment,No,No,0,No
-8,14,210,Yes,4,Villa,Yes,Yes,1.5,Yes
-9,11,165,No,3,Apartment,No,Yes,1,No
-10,16,240,Yes,5,Independent House,Yes,Yes,2,Yes
-11,9,135,No,2,Apartment,No,No,0.5,No
-12,20,300,Yes,6,Villa,Yes,Yes,3,Yes
-13,6,90,No,1,Apartment,No,No,0,No
-14,13,195,Yes,4,Apartment,Yes,Yes,1.5,Yes
-15,17,255,Yes,5,Independent House,Yes,Yes,2,Yes
-16,8,120,No,2,Apartment,No,No,1,No
-17,15,225,Yes,4,Villa,Yes,Yes,2,Yes
-18,10,150,No,3,Apartment,No,Yes,1,No
-19,12,180,Yes,3,Apartment,Yes,Yes,1,Yes
-20,7,105,No,2,Apartment,No,No,0.5,No
-21,13,195,Yes,4,Villa,Yes,Yes,2,Yes
-22,16,240,Yes,5,Independent House,Yes,Yes,2,Yes
-23,9,135,No,2,Apartment,No,No,1,No
-24,14,210,Yes,4,Apartment,Yes,Yes,1.5,Yes
-25,12,180,Yes,3,Apartment,Yes,Yes,1,Yes
-26,11,165,No,3,Apartment,No,Yes,1,No
-27,18,270,Yes,5,Villa,Yes,Yes,2.5,Yes
-28,8,120,No,2,Apartment,No,No,1,No
-29,17,255,Yes,5,Independent House,Yes,Yes,2,Yes
-30,10,150,No,3,Apartment,No,Yes,1,No
-31,12,180,Yes,3,Apartment,Yes,Yes,1,Yes
-32,7,105,No,2,Apartment,No,No,0.5,No
-33,16,240,Yes,5,Villa,Yes,Yes,2,Yes
-34,14,210,Yes,4,Apartment,Yes,Yes,1.5,Yes
-35,9,135,No,2,Apartment,No,No,1,No
-36,13,195,Yes,4,Villa,Yes,Yes,2,Yes
-37,15,225,Yes,4,Independent House,Yes,Yes,2,Yes
-38,10,150,No,3,Apartment,No,Yes,1,No
-39,12,180,Yes,3,Apartment,Yes,Yes,1,Yes
-40,7,105,No,2,Apartment,No,No,0.5,No
-41,14,210,Yes,4,Villa,Yes,Yes,1.5,Yes
-42,17,255,Yes,5,Independent House,Yes,Yes,2,Yes
-43,9,135,No,2,Apartment,No,No,1,No
-44,11,165,Yes,3,Apartment,Yes,Yes,1,Yes
-45,16,240,Yes,5,Villa,Yes,Yes,2,Yes
-46,8,120,No,2,Apartment,No,No,1,No
-47,15,225,Yes,4,Independent House,Yes,Yes,2,Yes
-48,10,150,No,3,Apartment,No,Yes,1,No
-49,12,180,Yes,3,Apartment,Yes,Yes,1,Yes
-50,7,105,No,2,Apartment,No,No,0.5,No
-51,13,195,Yes,4,Villa,Yes,Yes,2,Yes
-52,16,240,Yes,5,Independent House,Yes,Yes,2,Yes
-53,9,135,No,2,Apartment,No,No,1,No
-54,14,210,Yes,4,Apartment,Yes,Yes,1.5,Yes
-55,12,180,Yes,3,Apartment,Yes,Yes,1,Yes
-56,11,165,No,3,Apartment,No,Yes,1,No
-57,18,270,Yes,5,Villa,Yes,Yes,2.5,Yes
-58,8,120,No,2,Apartment,No,No,1,No
-59,17,255,Yes,5,Independent House,Yes,Yes,2,Yes
-60,10,150,No,3,Apartment,No,Yes,1,No
-61,12,180,Yes,3,Apartment,Yes,Yes,1,Yes
-62,7,105,No,2,Apartment,No,No,0.5,No
-63,16,240,Yes,5,Villa,Yes,Yes,2,Yes
-64,14,210,Yes,4,Apartment,Yes,Yes,1.5,Yes
-65,9,135,No,2,Apartment,No,No,1,No
-66,13,195,Yes,4,Villa,Yes,Yes,2,Yes
-67,15,225,Yes,4,Independent House,Yes,Yes,2,Yes
-68,10,150,No,3,Apartment,No,Yes,1,No
-69,12,180,Yes,3,Apartment,Yes,Yes,1,Yes
-70,7,105,No,2,Apartment,No,No,0.5,No
-71,14,210,Yes,4,Villa,Yes,Yes,1.5,Yes
-72,17,255,Yes,5,Independent House,Yes,Yes,2,Yes
-73,9,135,No,2,Apartment,No,No,1,No
-74,11,165,Yes,3,Apartment,Yes,Yes,1,Yes
-75,16,240,Yes,5,Villa,Yes,Yes,2,Yes
-76,13,195,Yes,4,Apartment,Yes,Yes,1.5,Yes
-77,8,120,No,2,Apartment,No,No,0.5,No
-78,15,225,Yes,5,Independent House,Yes,Yes,2,Yes
-79,10,150,No,3,Apartment,No,Yes,1,No
-80,12,180,Yes,3,Apartment,Yes,Yes,1,Yes
-81,7,105,No,2,Apartment,No,No,0.5,No
-82,16,240,Yes,5,Villa,Yes,Yes,2,Yes
-83,14,210,Yes,4,Apartment,Yes,Yes,1.5,Yes
-84,9,135,No,2,Apartment,No,No,1,No
-85,13,195,Yes,4,Villa,Yes,Yes,2,Yes
-86,15,225,Yes,4,Independent House,Yes,Yes,2,Yes
-87,10,150,No,3,Apartment,No,Yes,1,No
-88,12,180,Yes,3,Apartment,Yes,Yes,1,Yes
-89,7,105,No,2,Apartment,No,No,0.5,No
-90,14,210,Yes,4,Villa,Yes,Yes,1.5,Yes
-91,17,255,Yes,5,Independent House,Yes,Yes,2,Yes
-92,9,135,No,2,Apartment,No,No,1,No
-93,11,165,Yes,3,Apartment,Yes,Yes,1,Yes
-94,16,240,Yes,5,Villa,Yes,Yes,2,Yes
-95,8,120,No,2,Apartment,No,No,1,No
-96,15,225,Yes,4,Independent House,Yes,Yes,2,Yes
-97,10,150,No,3,Apartment,No,Yes,1,No
-98,12,180,Yes,3,Apartment,Yes,Yes,1,Yes
-99,7,105,No,2,Apartment,No,No,0.5,No
-100,16,240,Yes,5,Villa,Yes,Yes,2,Yes
+Household ID,Household Type,Occupants,Daily Energy (kWh),Cost (₹),AC Used,LED Used,Renewable,Implemented Tips?
+1,Apartment,3,35,315,Yes,No,Yes,Yes
+2,Villa,5,60,540,No,Yes,No,No
+3,Independent House,2,25,225,Yes,Yes,Yes,Yes
+4,Apartment,4,42,378,No,No,No,Yes
+5,Villa,6,65,585,Yes,No,Yes,No
+6,Independent House,1,15,135,No,Yes,Yes,No
+7,Apartment,2,22,198,Yes,Yes,No,Yes
+8,Villa,3,38,342,No,No,Yes,Yes
+9,Independent House,5,58,522,Yes,Yes,No,No
+10,Apartment,4,40,360,No,Yes,Yes,Yes
+11,Villa,2,28,252,Yes,No,No,Yes
+12,Independent House,3,36,324,No,Yes,Yes,No
+13,Apartment,5,55,495,Yes,Yes,No,Yes
+14,Villa,4,44,396,No,No,Yes,Yes
+15,Independent House,6,68,612,Yes,No,Yes,No
+16,Apartment,1,12,108,No,Yes,No,Yes
+17,Villa,3,37,333,Yes,Yes,Yes,No
+18,Independent House,2,26,234,No,No,No,Yes
+19,Apartment,4,41,369,Yes,Yes,Yes,Yes
+20,Villa,5,62,558,No,No,No,No
+21,Independent House,3,34,306,Yes,No,Yes,Yes
+22,Apartment,2,20,180,No,Yes,Yes,No
+23,Villa,6,66,594,Yes,Yes,No,Yes
+24,Independent House,4,48,432,No,No,Yes,Yes
+25,Apartment,5,53,477,Yes,No,Yes,No
+26,Villa,1,14,126,No,Yes,No,Yes
+27,Independent House,2,24,216,Yes,Yes,Yes,No
+28,Apartment,3,33,297,No,No,No,Yes
+29,Villa,4,46,414,Yes,Yes,No,Yes
+30,Independent House,5,61,549,No,No,Yes,No
+31,Apartment,2,21,189,Yes,No,Yes,Yes
+32,Villa,3,39,351,No,Yes,No,Yes
+33,Independent House,4,50,450,Yes,Yes,Yes,No
+34,Apartment,5,56,504,No,No,Yes,Yes
+35,Villa,6,67,603,Yes,No,No,No
+36,Independent House,1,13,117,No,Yes,Yes,Yes
+37,Apartment,2,23,207,Yes,Yes,No,No
+38,Villa,3,36,324,No,No,Yes,Yes
+39,Independent House,4,49,441,Yes,No,Yes,Yes
+40,Apartment,5,57,513,No,Yes,No,No
+41,Villa,2,27,243,Yes,Yes,Yes,Yes
+42,Independent House,3,35,315,No,No,No,Yes
+43,Apartment,4,43,387,Yes,No,Yes,No
+44,Villa,5,63,567,No,Yes,No,Yes
+45,Independent House,6,70,630,Yes,Yes,Yes,No
+46,Apartment,1,11,99,No,No,Yes,Yes
+47,Villa,2,29,261,Yes,No,No,Yes
+48,Independent House,3,32,288,No,Yes,Yes,No
+49,Apartment,4,44,396,Yes,Yes,No,Yes
+50,Villa,5,61,549,No,No,Yes,Yes
+51,Independent House,6,69,621,Yes,No,Yes,No
+52,Apartment,1,13,117,No,Yes,No,Yes
+53,Villa,2,28,252,Yes,Yes,Yes,No
+54,Independent House,3,34,306,No,No,No,Yes
+55,Apartment,4,45,405,Yes,No,Yes,Yes
+56,Villa,5,60,540,No,Yes,No,No
+57,Independent House,6,68,612,Yes,Yes,Yes,Yes
+58,Apartment,2,22,198,No,No,Yes,Yes
+59,Villa,3,37,333,Yes,No,No,No
+60,Independent House,4,51,459,No,Yes,Yes,Yes
+61,Apartment,5,55,495,Yes,Yes,No,Yes
+62,Villa,6,66,594,No,No,Yes,No
+63,Independent House,1,12,108,Yes,No,Yes,Yes
+64,Apartment,2,21,189,No,Yes,No,Yes
+65,Villa,3,39,351,Yes,Yes,Yes,No
+66,Independent House,4,48,432,No,No,No,Yes
+67,Apartment,5,53,477,Yes,No,Yes,No
+68,Villa,6,65,585,No,Yes,No,Yes
+69,Independent House,1,15,135,Yes,Yes,Yes,No
+70,Apartment,2,20,180,No,No,Yes,Yes
+71,Villa,3,38,342,Yes,No,No,Yes
+72,Independent House,4,50,450,No,Yes,Yes,No
+73,Apartment,5,56,504,Yes,Yes,No,Yes
+74,Villa,6,67,603,No,No,Yes,Yes
+75,Independent House,1,13,117,Yes,No,Yes,No
+76,Apartment,2,23,207,No,Yes,No,Yes
+77,Villa,3,36,324,Yes,Yes,Yes,No
+78,Independent House,4,49,441,No,No,No,Yes
+79,Apartment,5,57,513,Yes,No,Yes,Yes
+80,Villa,6,70,630,No,Yes,No,No
+81,Independent House,1,14,126,Yes,Yes,Yes,Yes
+82,Apartment,2,22,198,No,No,Yes,No
+83,Villa,3,35,315,Yes,No,No,Yes
+84,Independent House,4,48,432,No,Yes,Yes,No
+85,Apartment,5,54,486,Yes,Yes,No,Yes
+86,Villa,6,66,594,No,No,Yes,Yes
+87,Independent House,1,12,108,Yes,No,Yes,No
+88,Apartment,2,24,216,No,Yes,No,Yes
+89,Villa,3,37,333,Yes,Yes,Yes,No
+90,Independent House,4,51,459,No,No,No,Yes
+91,Apartment,5,55,495,Yes,No,Yes,Yes
+92,Villa,6,68,612,No,Yes,No,No
+93,Independent House,1,13,117,Yes,Yes,Yes,Yes
+94,Apartment,2,21,189,No,No,Yes,No
+95,Villa,3,39,351,Yes,No,No,Yes
+96,Independent House,4,50,450,No,Yes,Yes,No
+97,Apartment,5,56,504,Yes,Yes,No,Yes
+98,Villa,6,67,603,No,No,Yes,Yes
+99,Independent House,1,12,108,Yes,No,Yes,No
+100,Apartment,2,22,198,No,Yes,No,Yes
