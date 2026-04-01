@@ -196,20 +196,33 @@ numeric = reg[['Daily Energy (kWh)','Occupants','AC Used','LED Used','Renewable'
 fig, ax = plt.subplots()
 sns.heatmap(numeric.corr(), annot=True, cmap='coolwarm', ax=ax)
 show(fig)
-
 # =========================================================
-# 🔮 SIMULATION
+# 🔮 SIMULATION (FIXED)
 # =========================================================
 st.subheader("🔮 Simulation")
 
-impact = st.slider("LED Efficiency %",5,30,15)/100
+impact = st.slider("LED Efficiency %", 5, 30, 15) / 100
 
 sim = display_data.copy()
-sim.loc[sim['LED Used']=="No",'Daily Energy (kWh)'] *= (1-impact)
-sim['Cost (₹)'] = sim['Daily Energy (kWh)']*9
 
-st.write(f"New Avg Cost: {symbol} {sim[cost_col].mean():.2f}")
+# ✅ FORCE numeric conversion (critical fix)
+sim['Daily Energy (kWh)'] = pd.to_numeric(sim['Daily Energy (kWh)'], errors='coerce')
 
+# Drop any bad rows just in case
+sim = sim.dropna(subset=['Daily Energy (kWh)'])
+
+# ✅ APPLY CHANGE SAFELY
+mask = sim['LED Used'] == "No"
+sim.loc[mask, 'Daily Energy (kWh)'] = sim.loc[mask, 'Daily Energy (kWh)'] * (1 - impact)
+
+# Recalculate cost properly
+sim['Cost (₹)'] = sim['Daily Energy (kWh)'] * 9
+sim['Cost (HKD)'] = sim['Cost (₹)'] * 0.096
+sim['Cost (USD)'] = sim['Cost (₹)'] * 0.012
+
+# Output
+new_cost = sim[cost_col].mean()
+st.write(f"New Avg Cost after LED adoption: {symbol} {new_cost:.2f}")
 # =========================================================
 # 🧠 AI RECOMMENDATIONS (FIXED)
 # =========================================================
