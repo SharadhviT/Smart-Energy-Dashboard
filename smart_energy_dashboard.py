@@ -9,11 +9,6 @@ from sklearn.preprocessing import LabelEncoder
 st.set_page_config(layout="wide", page_title="Smart Energy Dashboard")
 st.title("💡 Smart Energy Awareness & Optimization Dashboard")
 
-st.markdown("""
-This dashboard provides insights into energy consumption across 100 households.  
-It utilizes **statistical modeling and regression analysis** to identify inefficiencies—a direct application of the analytical skills that earned me 100/100 in Statistics.
-""")
-
 # ---------- Load Data ----------
 data = pd.read_csv("energy_data_100.csv")
 
@@ -22,8 +17,8 @@ for col in ['AC Used','LED Used','Renewable','Implemented Tips?']:
     data[col] = data[col].str.title()
 
 # ---------- Currency Conversion ----------
-conversion_rate_hkd = 0.096  # 1 INR ≈ 0.096 HKD
-conversion_rate_usd = 0.012  # 1 INR ≈ 0.012 USD
+conversion_rate_hkd = 0.084  # 1 INR ≈ 0.084 HKD
+conversion_rate_usd = 0.011  # 1 INR ≈ 0.011 USD
 data['Cost (HKD)'] = data['Cost (₹)'] * conversion_rate_hkd
 data['Cost (USD)'] = data['Cost (₹)'] * conversion_rate_usd
 
