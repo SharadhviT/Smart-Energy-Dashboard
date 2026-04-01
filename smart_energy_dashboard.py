@@ -2,137 +2,150 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-from sklearn.linear_model import LinearRegression
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.model_selection import train_test_split
+from scipy.optimize import linprog
 
-st.set_page_config(page_title="Smart Energy Optimization", layout="wide")
+st.set_page_config(layout="wide")
+st.title("⚡ Research-Grade Smart Energy Optimization System")
 
-# =====================================================
-# 🎯 TITLE
-# =====================================================
-st.title("⚡ Smart Energy Optimization System")
-
-# =====================================================
-# 📂 DATA GENERATION / UPLOAD
-# =====================================================
-st.sidebar.header("📁 Data Options")
-
-option = st.sidebar.radio("Choose Data Source", ["Generate Sample Data", "Upload CSV"])
-
-def generate_data():
+# =========================================================
+# 📊 DATA GENERATION (TIME SERIES)
+# =========================================================
+def generate_data(n=200):
     np.random.seed(42)
-    data = pd.DataFrame({
-        "Temperature": np.random.randint(20, 40, 100),
-        "Humidity": np.random.randint(30, 80, 100),
-        "Occupancy": np.random.randint(1, 6, 100),
-        "Appliance_Usage": np.random.randint(1, 10, 100)
+    time = pd.date_range(start="2024-01-01", periods=n, freq="H")
+
+    df = pd.DataFrame({
+        "Time": time,
+        "Temperature": np.random.randint(20, 40, n),
+        "Occupancy": np.random.randint(1, 6, n),
+        "Appliance": np.random.randint(1, 10, n)
     })
-    data["Energy_kWh"] = (
-        0.5 * data["Temperature"] +
-        0.3 * data["Humidity"] +
-        2 * data["Occupancy"] +
-        1.5 * data["Appliance_Usage"] +
-        np.random.normal(0, 5, 100)
+
+    df["Hour"] = df["Time"].dt.hour
+
+    # Dynamic pricing (peak hours)
+    df["Price"] = np.where(df["Hour"].isin(range(18, 23)), 10, 5)
+
+    # Energy formula
+    df["Energy"] = (
+        0.6 * df["Temperature"] +
+        2.5 * df["Occupancy"] +
+        1.8 * df["Appliance"] +
+        np.random.normal(0, 2, n)
     )
-    return data
 
-if option == "Generate Sample Data":
-    df = generate_data()
-else:
-    uploaded_file = st.sidebar.file_uploader("Upload CSV", type=["csv"])
-    if uploaded_file:
-        df = pd.read_csv(uploaded_file)
-    else:
-        st.warning("Upload a dataset to proceed")
-        st.stop()
+    return df
 
-# =====================================================
-# 📊 DATA PREVIEW
-# =====================================================
-st.subheader("📊 Dataset Preview")
-st.dataframe(df)
+df = generate_data()
 
-# =====================================================
-# 📈 MODEL TRAINING
-# =====================================================
-X = df[["Temperature", "Humidity", "Occupancy", "Appliance_Usage"]]
-y = df["Energy_kWh"]
+st.subheader("📊 Dataset")
+st.dataframe(df.head())
 
-model = LinearRegression()
-model.fit(X, y)
+# =========================================================
+# 🧠 FEATURE ENGINEERING
+# =========================================================
+df["Lag_1"] = df["Energy"].shift(1)
+df["Rolling_Mean"] = df["Energy"].rolling(3).mean()
 
-# =====================================================
-# 🔮 PREDICTION SECTION
-# =====================================================
-st.subheader("🔮 Predict Energy Usage")
+df = df.dropna()
 
-col1, col2, col3, col4 = st.columns(4)
+features = ["Temperature", "Occupancy", "Appliance", "Hour", "Lag_1", "Rolling_Mean"]
+X = df[features]
+y = df["Energy"]
 
-temp = col1.slider("Temperature", 15, 45, 30)
-humidity = col2.slider("Humidity", 20, 90, 50)
-occupancy = col3.slider("Occupancy", 1, 10, 3)
-appliance = col4.slider("Appliance Usage", 1, 15, 5)
+# =========================================================
+# 🤖 MODEL TRAINING
+# =========================================================
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
 
-prediction = model.predict([[temp, humidity, occupancy, appliance]])
+model = RandomForestRegressor(n_estimators=100)
+model.fit(X_train, y_train)
 
-st.success(f"⚡ Predicted Energy Consumption: {prediction[0]:.2f} kWh")
+preds = model.predict(X_test)
 
-# =====================================================
-# 📉 VISUALIZATION
-# =====================================================
-st.subheader("📉 Energy Consumption Insights")
+st.subheader("📈 Model Performance")
+st.write(f"Train Score: {model.score(X_train, y_train):.3f}")
+st.write(f"Test Score: {model.score(X_test, y_test):.3f}")
+
+# =========================================================
+# 📊 VISUALIZATION
+# =========================================================
+st.subheader("📉 Actual vs Predicted")
 
 fig, ax = plt.subplots()
-ax.scatter(df["Temperature"], df["Energy_kWh"])
-ax.set_xlabel("Temperature")
-ax.set_ylabel("Energy (kWh)")
+ax.plot(y_test.values, label="Actual")
+ax.plot(preds, label="Predicted")
+ax.legend()
 st.pyplot(fig)
 
-# =====================================================
-# ⚙️ OPTIMIZATION SIMULATION
-# =====================================================
-st.subheader("⚙️ Optimization Simulation")
+# =========================================================
+# ⚡ OPTIMIZATION (LINEAR PROGRAMMING)
+# =========================================================
+st.subheader("⚡ Cost Optimization")
 
-reduction = st.slider("Reduce Appliance Usage (%)", 0, 50, 10)
+energy = df["Energy"].values
+price = df["Price"].values
 
-optimized_df = df.copy()
-optimized_df["Appliance_Usage"] *= (1 - reduction / 100)
+# Objective: minimize cost
+c = price
 
-optimized_energy = model.predict(
-    optimized_df[["Temperature", "Humidity", "Occupancy", "Appliance_Usage"]]
-)
+# Constraints: energy demand must be met
+A_eq = [np.ones(len(energy))]
+b_eq = [np.sum(energy)]
 
-original_total = df["Energy_kWh"].sum()
-optimized_total = optimized_energy.sum()
+# Bounds (flexibility in usage)
+bounds = [(0.8 * e, 1.2 * e) for e in energy]
 
-st.metric("Original Energy", f"{original_total:.2f} kWh")
-st.metric("Optimized Energy", f"{optimized_total:.2f} kWh")
-st.metric("Energy Saved", f"{original_total - optimized_total:.2f} kWh")
+result = linprog(c, A_eq=A_eq, b_eq=b_eq, bounds=bounds, method="highs")
 
-# =====================================================
-# 📊 COMPARISON GRAPH
-# =====================================================
-st.subheader("📊 Before vs After Optimization")
+optimized_usage = result.x
+
+original_cost = np.sum(energy * price)
+optimized_cost = np.sum(optimized_usage * price)
+
+st.metric("Original Cost", f"₹{original_cost:.2f}")
+st.metric("Optimized Cost", f"₹{optimized_cost:.2f}")
+st.metric("Savings", f"₹{original_cost - optimized_cost:.2f}")
+
+# =========================================================
+# 📊 COST COMPARISON GRAPH
+# =========================================================
+st.subheader("📊 Energy Optimization Comparison")
 
 fig2, ax2 = plt.subplots()
-ax2.plot(df["Energy_kWh"].values, label="Original")
-ax2.plot(optimized_energy, label="Optimized")
+ax2.plot(energy, label="Original Energy")
+ax2.plot(optimized_usage, label="Optimized Energy")
 ax2.legend()
 st.pyplot(fig2)
 
-# =====================================================
-# 💡 SMART SUGGESTIONS
-# =====================================================
-st.subheader("💡 Smart Recommendations")
+# =========================================================
+# 🧠 FEATURE IMPORTANCE (EXPLAINABILITY)
+# =========================================================
+st.subheader("🧠 Feature Importance")
 
-if reduction > 20:
-    st.write("✔ Significant energy savings achieved!")
-else:
-    st.write("👉 Try increasing appliance efficiency or reducing usage time.")
+importance = model.feature_importances_
 
-if temp > 35:
-    st.write("🌡 High temperature detected: Optimize AC usage.")
+fig3, ax3 = plt.subplots()
+ax3.barh(features, importance)
+st.pyplot(fig3)
 
-if occupancy <= 2:
-    st.write("🏠 Low occupancy: Turn off unused devices.")
+# =========================================================
+# 💡 SMART INSIGHTS
+# =========================================================
+st.subheader("💡 Insights")
 
-st.success("System analysis complete!")
+if optimized_cost < original_cost:
+    st.success("✔ Optimization successful: Cost reduced")
+
+peak_usage = df[df["Price"] == 10]["Energy"].mean()
+offpeak_usage = df[df["Price"] == 5]["Energy"].mean()
+
+st.write(f"⚡ Peak Avg Usage: {peak_usage:.2f}")
+st.write(f"🌙 Off-Peak Avg Usage: {offpeak_usage:.2f}")
+
+if peak_usage > offpeak_usage:
+    st.warning("👉 Shift load to off-peak hours to save more energy")
+
+st.success("Analysis Complete 🚀")
