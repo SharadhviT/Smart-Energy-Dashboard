@@ -2,175 +2,137 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-import seaborn as sns
 from sklearn.linear_model import LinearRegression
-from sklearn.preprocessing import LabelEncoder
-import os
 
-plt.style.use('ggplot')
+st.set_page_config(page_title="Smart Energy Optimization", layout="wide")
 
-# =========================================================
-# 📁 DATA
-# =========================================================
-DATA_FILE = "energy_data_100.csv"
+# =====================================================
+# 🎯 TITLE
+# =====================================================
+st.title("⚡ Smart Energy Optimization System")
+
+# =====================================================
+# 📂 DATA GENERATION / UPLOAD
+# =====================================================
+st.sidebar.header("📁 Data Options")
+
+option = st.sidebar.radio("Choose Data Source", ["Generate Sample Data", "Upload CSV"])
 
 def generate_data():
     np.random.seed(42)
-    data = []
+    data = pd.DataFrame({
+        "Temperature": np.random.randint(20, 40, 100),
+        "Humidity": np.random.randint(30, 80, 100),
+        "Occupancy": np.random.randint(1, 6, 100),
+        "Appliance_Usage": np.random.randint(1, 10, 100)
+    })
+    data["Energy_kWh"] = (
+        0.5 * data["Temperature"] +
+        0.3 * data["Humidity"] +
+        2 * data["Occupancy"] +
+        1.5 * data["Appliance_Usage"] +
+        np.random.normal(0, 5, 100)
+    )
+    return data
 
-    for i in range(1, 101):
-        occupants = np.random.randint(1, 7)
-        ac = np.random.choice(["Yes","No"])
-        led = np.random.choice(["Yes","No"])
-        ren = np.random.choice(["Yes","No"])
+if option == "Generate Sample Data":
+    df = generate_data()
+else:
+    uploaded_file = st.sidebar.file_uploader("Upload CSV", type=["csv"])
+    if uploaded_file:
+        df = pd.read_csv(uploaded_file)
+    else:
+        st.warning("Upload a dataset to proceed")
+        st.stop()
 
-        energy = np.random.uniform(10, 60)
-        if ac == "Yes": energy += 15
-        if led == "Yes": energy -= 5
-        if ren == "Yes": energy -= 3
+# =====================================================
+# 📊 DATA PREVIEW
+# =====================================================
+st.subheader("📊 Dataset Preview")
+st.dataframe(df)
 
-        data.append([
-            i,
-            np.random.choice(["Apartment","Villa","Independent House"]),
-            occupants,
-            round(energy,2),
-            round(energy*9,2),
-            ac, led, ren,
-            np.random.choice(["Yes","No"])
-        ])
+# =====================================================
+# 📈 MODEL TRAINING
+# =====================================================
+X = df[["Temperature", "Humidity", "Occupancy", "Appliance_Usage"]]
+y = df["Energy_kWh"]
 
-    df = pd.DataFrame(data, columns=[
-        "Household ID","Household Type","Occupants",
-        "Daily Energy (kWh)","Cost (₹)",
-        "AC Used","LED Used","Renewable","Implemented Tips?"
-    ])
+model = LinearRegression()
+model.fit(X, y)
 
-    df.to_csv(DATA_FILE, index=False)
-    return df
+# =====================================================
+# 🔮 PREDICTION SECTION
+# =====================================================
+st.subheader("🔮 Predict Energy Usage")
 
-def load_data():
-    if os.path.exists(DATA_FILE):
-        return pd.read_csv(DATA_FILE)
-    return generate_data()
+col1, col2, col3, col4 = st.columns(4)
 
-data = load_data()
+temp = col1.slider("Temperature", 15, 45, 30)
+humidity = col2.slider("Humidity", 20, 90, 50)
+occupancy = col3.slider("Occupancy", 1, 10, 3)
+appliance = col4.slider("Appliance Usage", 1, 15, 5)
 
-# =========================================================
-# 🧹 CLEAN
-# =========================================================
-data['Daily Energy (kWh)'] = pd.to_numeric(data['Daily Energy (kWh)'], errors='coerce')
-data['Cost (₹)'] = pd.to_numeric(data['Cost (₹)'], errors='coerce')
-data = data.dropna()
+prediction = model.predict([[temp, humidity, occupancy, appliance]])
 
-for col in ['AC Used','LED Used','Renewable','Implemented Tips?']:
-    data[col] = data[col].astype(str).str.title()
+st.success(f"⚡ Predicted Energy Consumption: {prediction[0]:.2f} kWh")
 
-# =========================================================
-# 💱 CURRENCY
-# =========================================================
-data['Cost (HKD)'] = data['Cost (₹)'] * 0.096
-data['Cost (USD)'] = data['Cost (₹)'] * 0.012
+# =====================================================
+# 📉 VISUALIZATION
+# =====================================================
+st.subheader("📉 Energy Consumption Insights")
 
-currency = st.sidebar.radio("Currency", ["INR","HKD","USD"])
-
-cost_col = {
-    "INR": "Cost (₹)",
-    "HKD": "Cost (HKD)",
-    "USD": "Cost (USD)"
-}[currency]
-
-symbol = {"INR":"₹","HKD":"HKD","USD":"$"}[currency]
-
-# =========================================================
-# 📊 TITLE
-# =========================================================
-st.title("💡 Smart Energy Optimization Dashboard")
-
-# =========================================================
-# 📊 METRICS
-# =========================================================
-st.metric("Avg Energy", f"{data['Daily Energy (kWh)'].mean():.2f} kWh")
-st.metric("Avg Cost", f"{symbol} {data[cost_col].mean():.2f}")
-
-# =========================================================
-# 📈 PLOTS
-# =========================================================
 fig, ax = plt.subplots()
-ax.plot(data['Household ID'], data['Daily Energy (kWh)'])
-ax.set_title("Energy per Household")
+ax.scatter(df["Temperature"], df["Energy_kWh"])
+ax.set_xlabel("Temperature")
+ax.set_ylabel("Energy (kWh)")
 st.pyplot(fig)
 
-# =========================================================
-# 🤖 REGRESSION
-# =========================================================
-reg = data.copy()
+# =====================================================
+# ⚙️ OPTIMIZATION SIMULATION
+# =====================================================
+st.subheader("⚙️ Optimization Simulation")
 
-for col in ['AC Used','LED Used','Renewable']:
-    reg[col] = LabelEncoder().fit_transform(reg[col])
+reduction = st.slider("Reduce Appliance Usage (%)", 0, 50, 10)
 
-X = reg[['Occupants','AC Used','LED Used','Renewable']]
-y = reg['Daily Energy (kWh)']
+optimized_df = df.copy()
+optimized_df["Appliance_Usage"] *= (1 - reduction / 100)
 
-model = LinearRegression().fit(X, y)
-st.write(f"Model R²: {model.score(X,y):.3f}")
+optimized_energy = model.predict(
+    optimized_df[["Temperature", "Humidity", "Occupancy", "Appliance_Usage"]]
+)
 
-# =========================================================
-# 🔍 CORRELATION
-# =========================================================
-fig, ax = plt.subplots()
-sns.heatmap(reg[['Daily Energy (kWh)','Occupants','AC Used','LED Used','Renewable']].corr(),
-            annot=True, ax=ax)
-st.pyplot(fig)
+original_total = df["Energy_kWh"].sum()
+optimized_total = optimized_energy.sum()
 
-# =========================================================
-# 🔮 SIMULATION (100% SAFE)
-# =========================================================
-st.subheader("🔮 LED Impact Simulation")
+st.metric("Original Energy", f"{original_total:.2f} kWh")
+st.metric("Optimized Energy", f"{optimized_total:.2f} kWh")
+st.metric("Energy Saved", f"{original_total - optimized_total:.2f} kWh")
 
-impact = st.slider("LED Efficiency %", 5, 30, 15) / 100
+# =====================================================
+# 📊 COMPARISON GRAPH
+# =====================================================
+st.subheader("📊 Before vs After Optimization")
 
-sim = data.copy()
+fig2, ax2 = plt.subplots()
+ax2.plot(df["Energy_kWh"].values, label="Original")
+ax2.plot(optimized_energy, label="Optimized")
+ax2.legend()
+st.pyplot(fig2)
 
-# ✅ SAFE NUMPY OPERATION (NO LOC, NO ERROR)
-energy_array = sim['Daily Energy (kWh)'].astype(float).values
+# =====================================================
+# 💡 SMART SUGGESTIONS
+# =====================================================
+st.subheader("💡 Smart Recommendations")
 
-mask = (sim['LED Used'] == "No").values
+if reduction > 20:
+    st.write("✔ Significant energy savings achieved!")
+else:
+    st.write("👉 Try increasing appliance efficiency or reducing usage time.")
 
-energy_array = np.where(mask, energy_array * (1 - impact), energy_array)
+if temp > 35:
+    st.write("🌡 High temperature detected: Optimize AC usage.")
 
-sim['Daily Energy (kWh)'] = energy_array
+if occupancy <= 2:
+    st.write("🏠 Low occupancy: Turn off unused devices.")
 
-# Recalculate cost
-sim['Cost (₹)'] = sim['Daily Energy (kWh)'] * 9
-sim['Cost (HKD)'] = sim['Cost (₹)'] * 0.096
-sim['Cost (USD)'] = sim['Cost (₹)'] * 0.012
-
-st.write(f"New Avg Cost: {symbol} {sim[cost_col].mean():.2f}")
-
-# =========================================================
-# 🧠 AI RECOMMENDATIONS
-# =========================================================
-st.subheader("🧠 AI Recommendations")
-
-avg_ac = data[data['AC Used']=="Yes"]['Daily Energy (kWh)'].mean()
-avg_no_ac = data[data['AC Used']=="No"]['Daily Energy (kWh)'].mean()
-
-avg_led = data[data['LED Used']=="Yes"][cost_col].mean()
-avg_no_led = data[data['LED Used']=="No"][cost_col].mean()
-
-avg_ren = data[data['Renewable']=="Yes"]['Daily Energy (kWh)'].mean()
-avg_no_ren = data[data['Renewable']=="No"]['Daily Energy (kWh)'].mean()
-
-if avg_no_led > avg_led:
-    st.success("💡 LED reduces cost")
-
-if avg_ac > avg_no_ac:
-    st.warning("❄️ AC increases energy usage")
-
-if avg_ren < avg_no_ren:
-    st.success("🌞 Renewable reduces energy")
-
-# =========================================================
-# 📥 DOWNLOAD
-# =========================================================
-st.download_button("Download CSV", data.to_csv(index=False), "energy.csv")
+st.success("System analysis complete!")
