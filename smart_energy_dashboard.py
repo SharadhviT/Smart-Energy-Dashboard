@@ -63,6 +63,30 @@ symbol = {
     "HKD": "HKD",
     "USD": "$"
 }[currency]
+# =========================================================
+# 🔎 FILTERS
+# =========================================================
+st.sidebar.header("🔎 Filters")
+
+household_types = st.sidebar.multiselect(
+    "Household Type", data['Household Type'].unique(),
+    default=data['Household Type'].unique()
+)
+
+ac_filter = st.sidebar.multiselect("AC Used",["Yes","No"],["Yes","No"])
+led_filter = st.sidebar.multiselect("LED Used",["Yes","No"],["Yes","No"])
+renewable_filter = st.sidebar.multiselect("Renewable",["Yes","No"],["Yes","No"])
+tips_filter = st.sidebar.multiselect("Implemented Tips?",["Yes","No"],["Yes","No"])
+
+filtered = data[
+    (data['Household Type'].isin(household_types)) &
+    (data['AC Used'].isin(ac_filter)) &
+    (data['LED Used'].isin(led_filter)) &
+    (data['Renewable'].isin(renewable_filter)) &
+    (data['Implemented Tips?'].isin(tips_filter))
+]
+
+display_data = filtered if not filtered.empty else data.copy()
 
 # =========================================================
 # ⚙️ SIDEBAR - ADD / DELETE
@@ -107,31 +131,6 @@ if not data.empty:
         st.session_state.data = updated
         st.success(f"Deleted Household {del_id}")
         st.rerun()
-
-# =========================================================
-# 🔎 FILTERS
-# =========================================================
-st.sidebar.header("🔎 Filters")
-
-household_types = st.sidebar.multiselect(
-    "Household Type", data['Household Type'].unique(),
-    default=data['Household Type'].unique()
-)
-
-ac_filter = st.sidebar.multiselect("AC Used",["Yes","No"],["Yes","No"])
-led_filter = st.sidebar.multiselect("LED Used",["Yes","No"],["Yes","No"])
-renewable_filter = st.sidebar.multiselect("Renewable",["Yes","No"],["Yes","No"])
-tips_filter = st.sidebar.multiselect("Implemented Tips?",["Yes","No"],["Yes","No"])
-
-filtered = data[
-    (data['Household Type'].isin(household_types)) &
-    (data['AC Used'].isin(ac_filter)) &
-    (data['LED Used'].isin(led_filter)) &
-    (data['Renewable'].isin(renewable_filter)) &
-    (data['Implemented Tips?'].isin(tips_filter))
-]
-
-display_data = filtered if not filtered.empty else data.copy()
 
 # =========================================================
 # 📊 METRICS
