@@ -55,7 +55,6 @@ df[['AC_Hours','Lights_Hours','Fridge_Usage(kWh)','Other_Usage(kWh)']].plot(kind
 plt.title("Energy Usage Overview")
 st.pyplot(fig)
 requirements.txt
-
-        st.write(f"**New Energy:** {new_energy:.2f} kWh")
-        st.write(f"**New Cost:** {currency_symbol}{new_cost:.2f}")
-        st.write(f"**Savings:** {currency_symbol}{row[cost_col]-new_cost:.2f}")
+st.write(f"**New Energy:** {new_energy:.2f} kWh")
+st.write(f"**New Cost:** {currency_symbol}{new_cost:.2f}")
+st.write(f"**Savings:** {currency_symbol}{row[cost_col]-new_cost:.2f}")
