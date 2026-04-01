@@ -4,26 +4,46 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from sklearn.linear_model import LinearRegression
 from sklearn.preprocessing import LabelEncoder
+import os
 
 plt.style.use('ggplot')
 
-# ---------- PAGE ----------
-st.set_page_config(layout="wide", page_title="Smart Energy Dashboard")
-st.title("💡 Smart Energy Optimization Dashboard")
+# =========================================================
+# 📁 DATA HANDLING
+# =========================================================
+DATA_FILE = "energy_data_100.csv"
 
-# ---------- LOAD DATA ----------
-data = pd.read_csv("energy_data_100.csv")
+def load_data():
+    if os.path.exists(DATA_FILE):
+        return pd.read_csv(DATA_FILE)
+    else:
+        return pd.DataFrame(columns=[
+            "Household ID","Household Type","Occupants",
+            "Daily Energy (kWh)","Cost (₹)",
+            "AC Used","LED Used","Renewable","Implemented Tips?"
+        ])
 
-# Fix datatypes
+def save_data(df):
+    df.to_csv(DATA_FILE, index=False)
+
+if "data" not in st.session_state:
+    st.session_state.data = load_data()
+
+data = st.session_state.data.copy()
+
+# =========================================================
+# 🧹 CLEAN DATA
+# =========================================================
 data['Daily Energy (kWh)'] = pd.to_numeric(data['Daily Energy (kWh)'], errors='coerce')
 data['Cost (₹)'] = pd.to_numeric(data['Cost (₹)'], errors='coerce')
 data.dropna(inplace=True)
 
-# Clean categories
 for col in ['AC Used','LED Used','Renewable','Implemented Tips?']:
     data[col] = data[col].astype(str).str.title()
 
-# ---------- CURRENCY ----------
+# =========================================================
+# 💱 CURRENCY
+# =========================================================
 conversion_rate_hkd = 0.096
 conversion_rate_usd = 0.012
 
@@ -44,41 +64,66 @@ symbol = {
     "USD": "$"
 }[currency]
 
-# ---------- SIDEBAR FILTERS ----------
-st.sidebar.header("🔎 Filter Households")
+# =========================================================
+# ⚙️ SIDEBAR - ADD / DELETE
+# =========================================================
+st.sidebar.header("⚙️ Manage Households")
+
+with st.sidebar.form("add_form"):
+    st.subheader("➕ Add Household")
+    hh_type = st.selectbox("Household Type", ["Apartment","Villa","Independent House"])
+    occupants = st.number_input("Occupants",1,10,3)
+    energy = st.number_input("Daily Energy (kWh)",1,200,30)
+    ac = st.selectbox("AC Used",["Yes","No"])
+    led = st.selectbox("LED Used",["Yes","No"])
+    renewable = st.selectbox("Renewable",["Yes","No"])
+    tips = st.selectbox("Implemented Tips?",["Yes","No"])
+
+    if st.form_submit_button("Add"):
+        new_id = int(data['Household ID'].max()) + 1 if not data.empty else 1
+        new_row = {
+            "Household ID": new_id,
+            "Household Type": hh_type,
+            "Occupants": occupants,
+            "Daily Energy (kWh)": float(energy),
+            "Cost (₹)": float(energy)*9,
+            "AC Used": ac,
+            "LED Used": led,
+            "Renewable": renewable,
+            "Implemented Tips?": tips
+        }
+        updated = pd.concat([data, pd.DataFrame([new_row])], ignore_index=True)
+        save_data(updated)
+        st.session_state.data = updated
+        st.success(f"Added Household {new_id}")
+        st.rerun()
+
+st.sidebar.subheader("🗑️ Delete Household")
+if not data.empty:
+    del_id = st.sidebar.selectbox("Select ID", sorted(data['Household ID'].unique()))
+    if st.sidebar.button("Delete"):
+        updated = data[data['Household ID'] != del_id]
+        save_data(updated)
+        st.session_state.data = updated
+        st.success(f"Deleted Household {del_id}")
+        st.rerun()
+
+# =========================================================
+# 🔎 FILTERS
+# =========================================================
+st.sidebar.header("🔎 Filters")
 
 household_types = st.sidebar.multiselect(
-    "Household Type",
-    data['Household Type'].unique(),
+    "Household Type", data['Household Type'].unique(),
     default=data['Household Type'].unique()
 )
 
-ac_filter = st.sidebar.multiselect(
-    "AC Used",
-    ['Yes','No'],
-    default=['Yes','No']
-)
+ac_filter = st.sidebar.multiselect("AC Used",["Yes","No"],["Yes","No"])
+led_filter = st.sidebar.multiselect("LED Used",["Yes","No"],["Yes","No"])
+renewable_filter = st.sidebar.multiselect("Renewable",["Yes","No"],["Yes","No"])
+tips_filter = st.sidebar.multiselect("Implemented Tips?",["Yes","No"],["Yes","No"])
 
-led_filter = st.sidebar.multiselect(
-    "LED Used",
-    ['Yes','No'],
-    default=['Yes','No']
-)
-
-renewable_filter = st.sidebar.multiselect(
-    "Renewable",
-    ['Yes','No'],
-    default=['Yes','No']
-)
-
-tips_filter = st.sidebar.multiselect(
-    "Implemented Tips?",
-    ['Yes','No'],
-    default=['Yes','No']
-)
-
-# ---------- APPLY FILTER ----------
-filtered_data = data[
+filtered = data[
     (data['Household Type'].isin(household_types)) &
     (data['AC Used'].isin(ac_filter)) &
     (data['LED Used'].isin(led_filter)) &
@@ -86,19 +131,17 @@ filtered_data = data[
     (data['Implemented Tips?'].isin(tips_filter))
 ]
 
-if filtered_data.empty:
-    st.warning("⚠️ No matching data — showing full dataset")
-    display_data = data.copy()
-else:
-    display_data = filtered_data.copy()
+display_data = filtered if not filtered.empty else data.copy()
 
-st.sidebar.markdown(f"### 📊 Showing {len(display_data)} households")
+# =========================================================
+# 📊 METRICS
+# =========================================================
+st.title("💡 Smart Energy Optimization System")
 
-# ---------- METRICS ----------
 avg_energy = display_data['Daily Energy (kWh)'].mean()
 avg_cost = display_data[cost_col].mean()
 
-c1, c2 = st.columns(2)
+c1,c2 = st.columns(2)
 c1.metric("Avg Energy", f"{avg_energy:.2f} kWh")
 c2.metric("Avg Cost", f"{symbol} {avg_cost:.2f}")
 
@@ -106,60 +149,42 @@ c2.metric("Avg Cost", f"{symbol} {avg_cost:.2f}")
 # 📊 GRAPHS
 # =========================================================
 
-# 1 Energy line
+def show_plot(fig):
+    st.pyplot(fig)
+
+# Line
 fig, ax = plt.subplots()
 ax.plot(display_data['Household ID'], display_data['Daily Energy (kWh)'])
-ax.set_title("Daily Energy per Household")
-ax.set_xlabel("Household ID")
-ax.set_ylabel("Energy (kWh)")
-st.pyplot(fig)
+ax.set(title="Energy per Household", xlabel="Household ID", ylabel="kWh")
+show_plot(fig)
 
-# 2 Cost bar
+# Bar
 fig, ax = plt.subplots()
 ax.bar(display_data['Household ID'], display_data[cost_col])
-ax.set_title("Cost per Household")
-ax.set_xlabel("Household ID")
-ax.set_ylabel(f"Cost ({symbol})")
-st.pyplot(fig)
+ax.set(title="Cost per Household", xlabel="Household ID", ylabel=symbol)
+show_plot(fig)
 
-# 3 Histogram
+# Histogram
 fig, ax = plt.subplots()
 ax.hist(display_data['Daily Energy (kWh)'], bins=10)
-ax.set_title("Energy Distribution")
-ax.set_xlabel("Energy (kWh)")
-ax.set_ylabel("Households")
-st.pyplot(fig)
+ax.set(title="Energy Distribution", xlabel="kWh", ylabel="Count")
+show_plot(fig)
 
-# 4 Scatter
+# Scatter
 fig, ax = plt.subplots()
 sns.regplot(x='Daily Energy (kWh)', y=cost_col, data=display_data, ax=ax)
-ax.set_title("Energy vs Cost")
-ax.set_xlabel("Energy (kWh)")
-ax.set_ylabel(f"Cost ({symbol})")
-st.pyplot(fig)
+ax.set(title="Energy vs Cost", xlabel="Energy", ylabel="Cost")
+show_plot(fig)
 
-# 5 Boxplot
+# Box
 fig, ax = plt.subplots()
 sns.boxplot(x='AC Used', y='Daily Energy (kWh)', data=display_data, ax=ax)
-ax.set_title("AC Usage vs Energy")
-ax.set_xlabel("AC Used")
-ax.set_ylabel("Energy (kWh)")
-st.pyplot(fig)
-
-# 6 Grouped
-group = display_data.groupby(['AC Used','LED Used'])['Daily Energy (kWh)'].mean().unstack()
-
-fig, ax = plt.subplots()
-group.plot(kind='bar', ax=ax)
-ax.set_title("AC vs LED Energy Comparison")
-ax.set_xlabel("AC Used")
-ax.set_ylabel("Avg Energy (kWh)")
-st.pyplot(fig)
+ax.set(title="AC Impact", xlabel="AC", ylabel="Energy")
+show_plot(fig)
 
 # =========================================================
 # 📊 REGRESSION
 # =========================================================
-
 st.subheader("📊 Regression Analysis")
 
 reg = display_data.copy()
@@ -170,78 +195,92 @@ for col in ['AC Used','LED Used','Renewable']:
 X = reg[['Occupants','AC Used','LED Used','Renewable']]
 y = reg['Daily Energy (kWh)']
 
-model = LinearRegression().fit(X, y)
+model = LinearRegression().fit(X,y)
+r2 = model.score(X,y)
 
-coeffs = pd.DataFrame({
-    "Feature": X.columns,
-    "Impact": model.coef_
-})
-
-st.dataframe(coeffs)
-
-r2 = model.score(X, y)
-st.write(f"Model Accuracy (R²): {r2:.3f}")
-
-# Feature chart
-fig, ax = plt.subplots()
-ax.bar(coeffs['Feature'], coeffs['Impact'])
-ax.set_title("Feature Impact on Energy")
-ax.set_xlabel("Feature")
-ax.set_ylabel("Impact")
-st.pyplot(fig)
+st.write(f"Model R²: {r2:.3f}")
 
 # =========================================================
 # 🔍 CORRELATION
 # =========================================================
-
 numeric = reg[['Daily Energy (kWh)','Occupants','AC Used','LED Used','Renewable']]
 
 fig, ax = plt.subplots()
 sns.heatmap(numeric.corr(), annot=True, cmap='coolwarm', ax=ax)
 ax.set_title("Correlation Matrix")
-st.pyplot(fig)
+show_plot(fig)
 
 # =========================================================
 # 🔮 SIMULATION
 # =========================================================
-
-st.subheader("🔮 What-If Simulation")
+st.subheader("🔮 Simulation")
 
 sim = display_data.copy()
 sim['Daily Energy (kWh)'] = sim['Daily Energy (kWh)'].astype(float)
 
-impact = st.slider("LED Efficiency Improvement (%)", 5, 30, 15) / 100
+impact = st.slider("LED Efficiency %",5,30,15)/100
+sim.loc[sim['LED Used']=="No",'Daily Energy (kWh)'] *= (1-impact)
 
-sim.loc[sim['LED Used'] == 'No', 'Daily Energy (kWh)'] *= (1 - impact)
-
-sim['Cost (₹)'] = sim['Daily Energy (kWh)'] * 9
-sim['Cost (HKD)'] = sim['Cost (₹)'] * conversion_rate_hkd
-sim['Cost (USD)'] = sim['Cost (₹)'] * conversion_rate_usd
+sim['Cost (₹)'] = sim['Daily Energy (kWh)']*9
 
 new_cost = sim[cost_col].mean()
-savings = (avg_cost - new_cost) * len(sim)
-
 st.write(f"New Avg Cost: {symbol} {new_cost:.2f}")
-st.write(f"Total Savings: {symbol} {savings:.2f} per day")
 
 # =========================================================
-# 🎯 RECOMMENDATIONS
+# 📊 OPTIMIZATION ENGINE
 # =========================================================
+st.subheader("📊 Best Cost Optimization")
 
-st.subheader("🎯 Recommendations")
+base_occ = int(display_data['Occupants'].mean())
 
-if savings > 0:
-    st.write("💡 Switching to LED significantly reduces cost")
+options = [
+("Yes","Yes","Yes"),("Yes","Yes","No"),("Yes","No","Yes"),
+("Yes","No","No"),("No","Yes","Yes"),("No","Yes","No"),
+("No","No","Yes"),("No","No","No")
+]
 
-if r2 > 0.5:
-    st.write("📊 Strong predictive relationship in data")
+results = []
+
+for ac,led,ren in options:
+    temp = pd.DataFrame({
+        "Occupants":[base_occ],
+        "AC Used":[1 if ac=="Yes" else 0],
+        "LED Used":[1 if led=="Yes" else 0],
+        "Renewable":[1 if ren=="Yes" else 0]
+    })
+
+    energy = model.predict(temp)[0]
+    cost = energy * 9
+
+    results.append([ac,led,ren,round(energy,2),round(cost,2)])
+
+opt_df = pd.DataFrame(results, columns=[
+    "AC","LED","Renewable","Energy","Cost"
+])
+
+st.dataframe(opt_df)
+
+best = opt_df.loc[opt_df['Cost'].idxmin()]
+
+st.success(f"""
+Best Setup:
+AC: {best['AC']}
+LED: {best['LED']}
+Renewable: {best['Renewable']}
+
+Cost: ₹ {best['Cost']}
+""")
+
+fig, ax = plt.subplots()
+ax.bar(range(len(opt_df)), opt_df['Cost'])
+ax.set(title="Cost Across Scenarios", xlabel="Scenario", ylabel="₹")
+show_plot(fig)
 
 # =========================================================
 # DOWNLOAD
 # =========================================================
-
 @st.cache_data
 def convert(df):
     return df.to_csv(index=False).encode('utf-8')
 
-st.download_button("Download Data", convert(display_data), "energy_data.csv")
+st.download_button("Download Data", convert(display_data), "energy.csv")
