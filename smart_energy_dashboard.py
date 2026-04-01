@@ -187,6 +187,55 @@ renewable_avg = safe_mean(display_data[display_data['Renewable']=='Yes']['Daily 
 non_renewable_avg = safe_mean(display_data[display_data['Renewable']=='No']['Daily Energy (kWh)'], fallback=avg_energy)
 st.write(f"- Avg energy with renewable: {renewable_avg:.2f} kWh")
 st.write(f"- Avg energy without renewable: {non_renewable_avg:.2f} kWh")
+# ---------- Statistical Modeling & Analysis ----------
+st.subheader("📊 Statistical Analysis & Regression Modeling")
+
+from sklearn.linear_model import LinearRegression
+from sklearn.preprocessing import LabelEncoder
+
+# Prepare data for regression
+reg_data = display_data.copy()
+
+# Encode categorical variables for regression
+for col in ['AC Used','LED Used','Renewable']:
+    reg_data[col] = LabelEncoder().fit_transform(reg_data[col])
+
+# Features and target
+X = reg_data[['Occupants','AC Used','LED Used','Renewable']]
+y = reg_data['Daily Energy (kWh)']
+
+# Fit Linear Regression
+model = LinearRegression()
+model.fit(X, y)
+
+# Coefficients
+coeffs = pd.DataFrame({
+    'Feature': X.columns,
+    'Coefficient': model.coef_
+})
+
+st.write("### Linear Regression: Predicting Daily Energy (kWh)")
+st.write("- Target: Daily Energy (kWh)")
+st.write("- Features: Number of Occupants, AC Usage, LED Usage, Renewable Adoption")
+st.write("#### Feature Impact on Energy Usage (Positive values increase energy consumption)")
+st.table(coeffs)
+
+# Predicted vs Observed energy
+reg_data['Predicted Energy'] = model.predict(X)
+reg_data['Residual'] = reg_data['Daily Energy (kWh)'] - reg_data['Predicted Energy']
+
+st.write("### Residual Analysis (Observed - Predicted Energy)")
+st.dataframe(reg_data[['Household ID','Daily Energy (kWh)','Predicted Energy','Residual']].head(10))
+
+# Correlation heatmap
+st.subheader("🔍 Correlation Matrix")
+corr = display_data[['Daily Energy (kWh)','Occupants']].copy()
+corr['AC Used'] = LabelEncoder().fit_transform(display_data['AC Used'])
+corr['LED Used'] = LabelEncoder().fit_transform(display_data['LED Used'])
+corr['Renewable'] = LabelEncoder().fit_transform(display_data['Renewable'])
+fig_corr, ax_corr = plt.subplots()
+sns.heatmap(corr.corr(), annot=True, cmap='coolwarm', ax=ax_corr)
+st.pyplot(fig_corr)
 
 # ---------- Dynamic Recommendations ----------
 st.subheader(" Data-Driven Recommendations")
