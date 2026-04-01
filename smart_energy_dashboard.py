@@ -1,98 +1,71 @@
-import streamlit as st
+ import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
+import seaborn as sns
 
-st.title("Smart Energy Awareness & Optimization Dashboard")
+st.set_page_config(layout="wide")
+st.title("Smart Energy Awareness & Optimization Dashboard – 100 Households")
 
-# Number of households
-num = st.number_input("Enter number of households", min_value=1, max_value=100, value=5, step=1)
+# Load preloaded data
+data = pd.read_csv("energy_data_100.csv")
 
-household_data = []
-
-for i in range(1, num+1):
-    st.subheader(f"Household {i}")
-    
-    energy = st.number_input(
-        f"Daily Energy (kWh) for Household {i}", 
-        min_value=0, value=10, key=f"energy_{i}"
-    )
-    
-    cost = st.number_input(
-        f"Daily Cost (₹) for Household {i}", 
-        min_value=0, value=150, key=f"cost_{i}"
-    )
-    
-    tip = st.selectbox(
-        f"Implemented Energy-Saving Tips?", 
-        ["Yes", "No"], key=f"tip_{i}"
-    )
-    
-    occupants = st.number_input(
-        f"Number of Occupants", min_value=1, max_value=20, value=3, key=f"occupants_{i}"
-    )
-    
-    house_type = st.selectbox(
-        "Household Type", ["Apartment", "Independent House", "Villa"], key=f"type_{i}"
-    )
-    
-    ac = st.selectbox(
-        "Air Conditioning Used?", ["Yes", "No"], key=f"ac_{i}"
-    )
-    
-    led = st.selectbox(
-        "LED Bulbs Used?", ["Yes", "No"], key=f"led_{i}"
-    )
-    
-    washing_hours = st.number_input(
-        "Washing Machine Usage per Day (hours)", min_value=0, max_value=5, value=1, key=f"washing_{i}"
-    )
-    
-    renewable = st.selectbox(
-        "Renewable Energy Source (Solar)?", ["Yes", "No"], key=f"solar_{i}"
-    )
-
-    household_data.append([
-        i, energy, cost, tip, occupants, house_type, ac, led, washing_hours, renewable
-    ])
-
-# Convert to DataFrame
-columns = [
-    "Household ID", "Daily Energy (kWh)", "Cost (₹)", "Implemented Tips?", 
-    "Occupants", "Household Type", "AC Used", "LED Used", "Washing Hours", "Renewable"
-]
-data = pd.DataFrame(household_data, columns=columns)
-
-# Display Data
+# Display raw data
 st.subheader("Household Energy Data")
 st.dataframe(data)
 
-# Line chart for Daily Energy
-st.subheader("Daily Energy Usage (kWh)")
+# ---------- Line chart: Daily Energy ----------
+st.subheader("Daily Energy Usage (kWh) - Line Chart")
 st.line_chart(data['Daily Energy (kWh)'])
 
-# Pie chart for tips implemented
+# ---------- Bar chart: Cost per Household ----------
+st.subheader("Daily Cost (₹) per Household")
+st.bar_chart(data.set_index('Household ID')['Cost (₹)'])
+
+# ---------- Pie chart: Tips implemented ----------
 st.subheader("Households Implementing Energy-Saving Tips")
 tip_counts = data['Implemented Tips?'].value_counts()
 fig1, ax1 = plt.subplots()
 ax1.pie(tip_counts, labels=tip_counts.index, autopct='%1.1f%%', colors=['#66b3ff','#ff9999'])
 st.pyplot(fig1)
 
-# Bar chart for cost
-st.subheader("Daily Cost (₹) per Household")
-st.bar_chart(data.set_index('Household ID')['Cost (₹)'])
+# ---------- Additional Graphs ----------
+# 1. Energy per Occupant
+st.subheader("Energy Usage per Occupant")
+data['Energy per Occupant'] = data['Daily Energy (kWh)'] / data['Occupants']
+st.bar_chart(data.set_index('Household ID')['Energy per Occupant'])
 
-# Additional Insights
-st.subheader("Average Energy Usage per Occupant")
-avg_energy_per_occupant = (data['Daily Energy (kWh)'] / data['Occupants']).mean()
-st.write(f"Average Energy per Occupant: {avg_energy_per_occupant:.2f} kWh")
+# 2. Energy by Household Type
+st.subheader("Average Energy Usage by Household Type")
+avg_energy_type = data.groupby('Household Type')['Daily Energy (kWh)'].mean()
+st.bar_chart(avg_energy_type)
 
-st.subheader("Percentage Using LED Bulbs")
-led_pct = (data['LED Used'] == "Yes").mean() * 100
-st.write(f"{led_pct:.1f}% of households use LED bulbs")
+# 3. Renewable Energy Adoption
+st.subheader("Renewable Energy Adoption (Solar Panels)")
+renewable_counts = data['Renewable'].value_counts()
+fig2, ax2 = plt.subplots()
+ax2.pie(renewable_counts, labels=renewable_counts.index, autopct='%1.1f%%', colors=['#99ff99','#ffcc99'])
+st.pyplot(fig2)
 
-st.subheader("Top 3 Energy-Saving Tips")
+# 4. AC Usage Analysis
+st.subheader("AC Usage vs Daily Energy")
+fig3, ax3 = plt.subplots(figsize=(8,4))
+sns.boxplot(x='AC Used', y='Daily Energy (kWh)', data=data, ax=ax3)
+st.pyplot(fig3)
+
+# ---------- Top 5 Energy-Saving Tips ----------
+st.subheader("Top 5 Energy-Saving Tips")
 st.write("""
 1. Turn off unused appliances.  
 2. Use LED bulbs instead of CFL/Incandescent.  
-3. Reduce AC usage or set optimal temperature.
+3. Reduce AC usage or set optimal temperature.  
+4. Install solar panels if possible.  
+5. Optimize washing machine usage and laundry loads.
 """)
+
+# ---------- Additional Insights ----------
+st.subheader("Insights Summary")
+st.write(f"- Average Energy per Household: {data['Daily Energy (kWh)'].mean():.2f} kWh")
+st.write(f"- Average Energy per Occupant: {data['Energy per Occupant'].mean():.2f} kWh")
+st.write(f"- Households using LED bulbs: {(data['LED Used']=="Yes").mean()*100:.1f}%")
+st.write(f"- Households with renewable energy: {(data['Renewable']=="Yes").mean()*100:.1f}%")
+st.write(f"- Households using AC: {(data['AC Used']=="Yes").mean()*100:.1f}%")
