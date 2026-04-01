@@ -10,7 +10,7 @@ import os
 plt.style.use('ggplot')
 
 # =========================================================
-# 📁 DATA HANDLING
+# 📁 DATA
 # =========================================================
 DATA_FILE = "energy_data_100.csv"
 
@@ -28,14 +28,12 @@ def generate_data():
         if led == "Yes": energy -= 5
         if renewable == "Yes": energy -= 3
 
-        cost = energy * 9
-
         rows.append([
             i,
             np.random.choice(["Apartment","Villa","Independent House"]),
             occupants,
             round(energy,2),
-            round(cost,2),
+            round(energy*9,2),
             ac, led, renewable,
             np.random.choice(["Yes","No"])
         ])
@@ -45,14 +43,12 @@ def generate_data():
         "Daily Energy (kWh)","Cost (₹)",
         "AC Used","LED Used","Renewable","Implemented Tips?"
     ])
+
     df.to_csv(DATA_FILE, index=False)
     return df
 
 def load_data():
-    if os.path.exists(DATA_FILE):
-        return pd.read_csv(DATA_FILE)
-    else:
-        return generate_data()
+    return pd.read_csv(DATA_FILE) if os.path.exists(DATA_FILE) else generate_data()
 
 def save_data(df):
     df.to_csv(DATA_FILE, index=False)
@@ -63,11 +59,11 @@ if "data" not in st.session_state:
 data = st.session_state.data.copy()
 
 # =========================================================
-# 🧹 CLEANING
+# 🧹 CLEAN
 # =========================================================
 data['Daily Energy (kWh)'] = pd.to_numeric(data['Daily Energy (kWh)'], errors='coerce')
 data['Cost (₹)'] = pd.to_numeric(data['Cost (₹)'], errors='coerce')
-data.dropna(inplace=True)
+data = data.dropna()
 
 for col in ['AC Used','LED Used','Renewable','Implemented Tips?']:
     data[col] = data[col].astype(str).str.title()
@@ -78,7 +74,7 @@ for col in ['AC Used','LED Used','Renewable','Implemented Tips?']:
 data['Cost (HKD)'] = data['Cost (₹)'] * 0.096
 data['Cost (USD)'] = data['Cost (₹)'] * 0.012
 
-currency = st.sidebar.radio("💱 Currency", ["INR","HKD","USD"])
+currency = st.sidebar.radio("Currency", ["INR","HKD","USD"])
 
 cost_col = {
     "INR": "Cost (₹)",
@@ -89,92 +85,28 @@ cost_col = {
 symbol = {"INR":"₹","HKD":"HKD","USD":"$"}[currency]
 
 # =========================================================
-# 🔎 FILTERS
+# 🔎 FILTER
 # =========================================================
-st.sidebar.header("🔎 Filters")
-
-household_types = st.sidebar.multiselect(
-    "Household Type",
-    data['Household Type'].unique(),
-    default=data['Household Type'].unique()
-)
-
-filtered = data[
-    (data['Household Type'].isin(household_types))
-]
-
-display_data = filtered if not filtered.empty else data.copy()
-
-# =========================================================
-# ➕ ADD / DELETE
-# =========================================================
-st.sidebar.header("⚙️ Manage")
-
-with st.sidebar.form("add"):
-    hh = st.selectbox("Type", ["Apartment","Villa","Independent House"])
-    occ = st.number_input("Occupants",1,10,3)
-    energy = st.number_input("Energy",1,200,30)
-    ac = st.selectbox("AC",["Yes","No"])
-    led = st.selectbox("LED",["Yes","No"])
-    ren = st.selectbox("Renewable",["Yes","No"])
-    tips = st.selectbox("Tips",["Yes","No"])
-
-    if st.form_submit_button("Add"):
-        new_id = int(data['Household ID'].max()) + 1
-        new = pd.DataFrame([[new_id,hh,occ,energy,energy*9,ac,led,ren,tips]],
-        columns=data.columns)
-
-        updated = pd.concat([data,new], ignore_index=True)
-        save_data(updated)
-        st.session_state.data = updated
-        st.rerun()
-
-if not data.empty:
-    del_id = st.sidebar.selectbox("Delete ID", data['Household ID'])
-    if st.sidebar.button("Delete"):
-        updated = data[data['Household ID'] != del_id]
-        save_data(updated)
-        st.session_state.data = updated
-        st.rerun()
+display_data = data.copy()
 
 # =========================================================
 # 📊 METRICS
 # =========================================================
 st.title("💡 Smart Energy Optimization System")
 
-avg_energy = display_data['Daily Energy (kWh)'].mean()
-avg_cost = display_data[cost_col].mean()
-
-c1,c2 = st.columns(2)
-c1.metric("Avg Energy", f"{avg_energy:.2f} kWh")
-c2.metric("Avg Cost", f"{symbol} {avg_cost:.2f}")
+st.metric("Avg Energy", f"{display_data['Daily Energy (kWh)'].mean():.2f} kWh")
+st.metric("Avg Cost", f"{symbol} {display_data[cost_col].mean():.2f}")
 
 # =========================================================
 # 📈 VISUALS
 # =========================================================
-def show(fig): st.pyplot(fig)
-
-# Line
 fig, ax = plt.subplots()
 ax.plot(display_data['Household ID'], display_data['Daily Energy (kWh)'])
-ax.set(title="Energy per Household")
-show(fig)
-
-# Histogram
-fig, ax = plt.subplots()
-ax.hist(display_data['Daily Energy (kWh)'], bins=10)
-show(fig)
-
-# Scatter
-fig, ax = plt.subplots()
-sns.regplot(x='Daily Energy (kWh)', y=cost_col, data=display_data, ax=ax)
-show(fig)
+st.pyplot(fig)
 
 # =========================================================
-# 🤖 REGRESSION
+# 🤖 MODEL
 # =========================================================
-st.subheader("📊 Regression Model")
-
 reg = display_data.copy()
 
 for col in ['AC Used','LED Used','Renewable']:
@@ -184,49 +116,49 @@ X = reg[['Occupants','AC Used','LED Used','Renewable']]
 y = reg['Daily Energy (kWh)']
 
 model = LinearRegression().fit(X,y)
-st.write(f"Model Accuracy (R²): {model.score(X,y):.3f}")
+
+st.write(f"Model R²: {model.score(X,y):.3f}")
 
 # =========================================================
-# 🔍 CORRELATION (FIXED)
+# 🔍 CORRELATION
 # =========================================================
-st.subheader("📊 Correlation Matrix")
-
-numeric = reg[['Daily Energy (kWh)','Occupants','AC Used','LED Used','Renewable']]
-
 fig, ax = plt.subplots()
-sns.heatmap(numeric.corr(), annot=True, cmap='coolwarm', ax=ax)
-show(fig)
+sns.heatmap(reg[['Daily Energy (kWh)','Occupants','AC Used','LED Used','Renewable']].corr(),
+            annot=True, ax=ax)
+st.pyplot(fig)
+
 # =========================================================
-# 🔮 SIMULATION (FIXED)
+# 🔮 SIMULATION (FINAL FIX)
 # =========================================================
-st.subheader("🔮 Simulation")
+st.subheader("Simulation")
 
 impact = st.slider("LED Efficiency %", 5, 30, 15) / 100
 
 sim = display_data.copy()
 
-# ✅ FORCE numeric conversion (critical fix)
-sim['Daily Energy (kWh)'] = pd.to_numeric(sim['Daily Energy (kWh)'], errors='coerce')
+# ✅ FULL SAFE PIPELINE
+sim_energy = pd.to_numeric(sim['Daily Energy (kWh)'], errors='coerce')
 
-# Drop any bad rows just in case
-sim = sim.dropna(subset=['Daily Energy (kWh)'])
+sim_energy = np.where(
+    sim['LED Used'] == "No",
+    sim_energy * (1 - impact),
+    sim_energy
+)
 
-# ✅ APPLY CHANGE SAFELY
-mask = sim['LED Used'] == "No"
-sim.loc[mask, 'Daily Energy (kWh)'] = sim.loc[mask, 'Daily Energy (kWh)'] * (1 - impact)
+# ✅ Assign back cleanly (NO .loc)
+sim = sim.assign(**{"Daily Energy (kWh)": sim_energy})
 
-# Recalculate cost properly
+# Recalculate cost
 sim['Cost (₹)'] = sim['Daily Energy (kWh)'] * 9
 sim['Cost (HKD)'] = sim['Cost (₹)'] * 0.096
 sim['Cost (USD)'] = sim['Cost (₹)'] * 0.012
 
-# Output
-new_cost = sim[cost_col].mean()
-st.write(f"New Avg Cost after LED adoption: {symbol} {new_cost:.2f}")
+st.write(f"New Avg Cost: {symbol} {sim[cost_col].mean():.2f}")
+
 # =========================================================
 # 🧠 AI RECOMMENDATIONS (FIXED)
 # =========================================================
-st.subheader("🧠 AI Recommendations")
+st.subheader("AI Recommendations")
 
 avg_ac = display_data[display_data['AC Used']=="Yes"]['Daily Energy (kWh)'].mean()
 avg_no_ac = display_data[display_data['AC Used']=="No"]['Daily Energy (kWh)'].mean()
@@ -238,32 +170,13 @@ avg_ren = display_data[display_data['Renewable']=="Yes"]['Daily Energy (kWh)'].m
 avg_no_ren = display_data[display_data['Renewable']=="No"]['Daily Energy (kWh)'].mean()
 
 if avg_no_led > avg_led:
-    st.success("💡 Switching to LED reduces cost significantly.")
+    st.success("Switch to LED to reduce cost")
 
 if avg_ac > avg_no_ac:
-    st.warning("❄️ AC usage increases energy consumption.")
+    st.warning("Reduce AC usage")
 
 if avg_ren < avg_no_ren:
-    st.success("🌞 Renewable energy reduces consumption.")
-
-# =========================================================
-# 🏆 OPTIMIZATION
-# =========================================================
-st.subheader("🏆 Best Setup")
-
-base_occ = int(display_data['Occupants'].mean())
-
-configs = []
-for ac in [0,1]:
-    for led in [0,1]:
-        for ren in [0,1]:
-            pred = model.predict([[base_occ,ac,led,ren]])[0]
-            configs.append([ac,led,ren,pred,pred*9])
-
-opt = pd.DataFrame(configs, columns=["AC","LED","REN","Energy","Cost"])
-
-best = opt.loc[opt['Cost'].idxmin()]
-st.success(f"Best Cost: ₹ {best['Cost']:.2f}")
+    st.success("Use renewable energy")
 
 # =========================================================
 # DOWNLOAD
