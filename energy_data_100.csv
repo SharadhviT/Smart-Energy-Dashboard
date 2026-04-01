@@ -1,0 +1,101 @@
+Household ID,Daily Energy (kWh),Cost (₹),Implemented Tips?,Occupants,Household Type,AC Used,LED Used,Washing Hours,Renewable
+1,12,180,Yes,3,Apartment,Yes,Yes,1,No
+2,8,120,No,2,Apartment,No,No,0.5,No
+3,15,225,Yes,4,Villa,Yes,Yes,2,Yes
+4,7,105,No,2,Apartment,No,No,1,No
+5,18,270,Yes,5,Independent House,Yes,Yes,2,Yes
+6,10,150,Yes,3,Apartment,Yes,Yes,1,No
+7,5,75,No,1,Apartment,No,No,0,No
+8,14,210,Yes,4,Villa,Yes,Yes,1.5,Yes
+9,11,165,No,3,Apartment,No,Yes,1,No
+10,16,240,Yes,5,Independent House,Yes,Yes,2,Yes
+11,9,135,No,2,Apartment,No,No,0.5,No
+12,20,300,Yes,6,Villa,Yes,Yes,3,Yes
+13,6,90,No,1,Apartment,No,No,0,No
+14,13,195,Yes,4,Apartment,Yes,Yes,1.5,Yes
+15,17,255,Yes,5,Independent House,Yes,Yes,2,Yes
+16,8,120,No,2,Apartment,No,No,1,No
+17,15,225,Yes,4,Villa,Yes,Yes,2,Yes
+18,10,150,No,3,Apartment,No,Yes,1,No
+19,12,180,Yes,3,Apartment,Yes,Yes,1,Yes
+20,7,105,No,2,Apartment,No,No,0.5,No
+21,13,195,Yes,4,Villa,Yes,Yes,2,Yes
+22,16,240,Yes,5,Independent House,Yes,Yes,2,Yes
+23,9,135,No,2,Apartment,No,No,1,No
+24,14,210,Yes,4,Apartment,Yes,Yes,1.5,Yes
+25,12,180,Yes,3,Apartment,Yes,Yes,1,Yes
+26,11,165,No,3,Apartment,No,Yes,1,No
+27,18,270,Yes,5,Villa,Yes,Yes,2.5,Yes
+28,8,120,No,2,Apartment,No,No,1,No
+29,17,255,Yes,5,Independent House,Yes,Yes,2,Yes
+30,10,150,No,3,Apartment,No,Yes,1,No
+31,12,180,Yes,3,Apartment,Yes,Yes,1,Yes
+32,7,105,No,2,Apartment,No,No,0.5,No
+33,16,240,Yes,5,Villa,Yes,Yes,2,Yes
+34,14,210,Yes,4,Apartment,Yes,Yes,1.5,Yes
+35,9,135,No,2,Apartment,No,No,1,No
+36,13,195,Yes,4,Villa,Yes,Yes,2,Yes
+37,15,225,Yes,4,Independent House,Yes,Yes,2,Yes
+38,10,150,No,3,Apartment,No,Yes,1,No
+39,12,180,Yes,3,Apartment,Yes,Yes,1,Yes
+40,7,105,No,2,Apartment,No,No,0.5,No
+41,14,210,Yes,4,Villa,Yes,Yes,1.5,Yes
+42,17,255,Yes,5,Independent House,Yes,Yes,2,Yes
+43,9,135,No,2,Apartment,No,No,1,No
+44,11,165,Yes,3,Apartment,Yes,Yes,1,Yes
+45,16,240,Yes,5,Villa,Yes,Yes,2,Yes
+46,8,120,No,2,Apartment,No,No,1,No
+47,15,225,Yes,4,Independent House,Yes,Yes,2,Yes
+48,10,150,No,3,Apartment,No,Yes,1,No
+49,12,180,Yes,3,Apartment,Yes,Yes,1,Yes
+50,7,105,No,2,Apartment,No,No,0.5,No
+51,13,195,Yes,4,Villa,Yes,Yes,2,Yes
+52,16,240,Yes,5,Independent House,Yes,Yes,2,Yes
+53,9,135,No,2,Apartment,No,No,1,No
+54,14,210,Yes,4,Apartment,Yes,Yes,1.5,Yes
+55,12,180,Yes,3,Apartment,Yes,Yes,1,Yes
+56,11,165,No,3,Apartment,No,Yes,1,No
+57,18,270,Yes,5,Villa,Yes,Yes,2.5,Yes
+58,8,120,No,2,Apartment,No,No,1,No
+59,17,255,Yes,5,Independent House,Yes,Yes,2,Yes
+60,10,150,No,3,Apartment,No,Yes,1,No
+61,12,180,Yes,3,Apartment,Yes,Yes,1,Yes
+62,7,105,No,2,Apartment,No,No,0.5,No
+63,16,240,Yes,5,Villa,Yes,Yes,2,Yes
+64,14,210,Yes,4,Apartment,Yes,Yes,1.5,Yes
+65,9,135,No,2,Apartment,No,No,1,No
+66,13,195,Yes,4,Villa,Yes,Yes,2,Yes
+67,15,225,Yes,4,Independent House,Yes,Yes,2,Yes
+68,10,150,No,3,Apartment,No,Yes,1,No
+69,12,180,Yes,3,Apartment,Yes,Yes,1,Yes
+70,7,105,No,2,Apartment,No,No,0.5,No
+71,14,210,Yes,4,Villa,Yes,Yes,1.5,Yes
+72,17,255,Yes,5,Independent House,Yes,Yes,2,Yes
+73,9,135,No,2,Apartment,No,No,1,No
+74,11,165,Yes,3,Apartment,Yes,Yes,1,Yes
+75,16,240,Yes,5,Villa,Yes,Yes,2,Yes
+76,13,195,Yes,4,Apartment,Yes,Yes,1.5,Yes
+77,8,120,No,2,Apartment,No,No,0.5,No
+78,15,225,Yes,5,Independent House,Yes,Yes,2,Yes
+79,10,150,No,3,Apartment,No,Yes,1,No
+80,12,180,Yes,3,Apartment,Yes,Yes,1,Yes
+81,7,105,No,2,Apartment,No,No,0.5,No
+82,16,240,Yes,5,Villa,Yes,Yes,2,Yes
+83,14,210,Yes,4,Apartment,Yes,Yes,1.5,Yes
+84,9,135,No,2,Apartment,No,No,1,No
+85,13,195,Yes,4,Villa,Yes,Yes,2,Yes
+86,15,225,Yes,4,Independent House,Yes,Yes,2,Yes
+87,10,150,No,3,Apartment,No,Yes,1,No
+88,12,180,Yes,3,Apartment,Yes,Yes,1,Yes
+89,7,105,No,2,Apartment,No,No,0.5,No
+90,14,210,Yes,4,Villa,Yes,Yes,1.5,Yes
+91,17,255,Yes,5,Independent House,Yes,Yes,2,Yes
+92,9,135,No,2,Apartment,No,No,1,No
+93,11,165,Yes,3,Apartment,Yes,Yes,1,Yes
+94,16,240,Yes,5,Villa,Yes,Yes,2,Yes
+95,8,120,No,2,Apartment,No,No,1,No
+96,15,225,Yes,4,Independent House,Yes,Yes,2,Yes
+97,10,150,No,3,Apartment,No,Yes,1,No
+98,12,180,Yes,3,Apartment,Yes,Yes,1,Yes
+99,7,105,No,2,Apartment,No,No,0.5,No
+100,16,240,Yes,5,Villa,Yes,Yes,2,Yes
